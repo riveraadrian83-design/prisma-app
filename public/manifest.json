@@ -1,0 +1,16 @@
+{
+    "short_name": "Prisma",
+    "name": "Prisma Arquitectura",
+    "icons": [
+      {
+        "src": "icon-512.png",
+        "type": "image/png",
+        "sizes": "512x512",
+        "purpose": "any maskable"
+      }
+    ],
+    "start_url": ".",
+    "background_color": "#121212",
+    "theme_color": "#121212",
+    "display": "standalone"
+  }
