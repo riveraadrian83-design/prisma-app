@@ -70,7 +70,6 @@ const DEFAULT_EQUIPO = [
 
 const DEFAULT_PRICEBOOK = { materiales: DEFAULT_MATERIALES, manoObra: DEFAULT_MANO_OBRA, equipo: DEFAULT_EQUIPO };
 
-/* Matrices genéricas: insumo(s) + cuadrilla + rendimiento por unidad */
 const MATRICES = {
   trazo: { nombre: "Trazo y Nivelación", unidad: "m2", materiales: [{ id: "cal_trazo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 80 },
   demol_mamposteria: { nombre: "Demolición Muro Mampostería", unidad: "m2", materiales: [{ id: "flete_pesado", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
@@ -97,7 +96,7 @@ const TIPOS_PISO = ["Cerámico", "Porcelanato", "Concreto Pulido", "Terrazzo", "
 const TIPOS_INMUEBLE = ["Local Comercial", "Departamento", "Casa", "Oficina", "Nave"];
 const NIVELES_ACABADO = ["Económico", "Comercial", "Residencial", "Lujo"];
 const TIPOS_ESTRUCTURA = ["Columna", "Castillo", "Trabe", "Dala de Cerramiento"];
-const CUANTIAS_ACERO = { Columna: 90, Castillo: 60, Trabe: 100, "Dala de Cerramiento": 55 }; // kg/m3
+const CUANTIAS_ACERO = { Columna: 90, Castillo: 60, Trabe: 100, "Dala de Cerramiento": 55 };
 const MATERIALES_CANCELERIA = { 'Aluminio (2")': "aluminio_2", 'Aluminio (3")': "aluminio_3", "Aluminio Línea Nacional": "aluminio_nacional", "Herrería Estructural": "herreria_estructural" };
 const TIPOS_SALIDA_ELECTRICA = ["Luminaria", "Contacto", "Apagador"];
 const TIPOS_SALIDA_HIDRAULICA = ["Lavabo", "W.C.", "Regadera", "Fregadero"];
@@ -128,11 +127,122 @@ const defaultProyecto = () => ({ cliente: "", ubicacion: "", tipo: "Casa", super
 const defaultParams = () => ({ indirectos: 20, herramientaMenor: 5, imprevistos: 5, equipoSeguridad: 2 });
 
 /* -------------------------------------------------------------------------
-   2. UTILIDADES
+   2. UTILIDADES Y CONVERTIDOR DE NÚMEROS A LETRA
    ------------------------------------------------------------------------- */
 
 const money = (n) => (isFinite(n) ? n : 0).toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 });
 const num = (v) => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+
+function numeroALetras(monto) {
+  const n = Math.abs(num(monto));
+  const entero = Math.floor(n);
+  const centavos = Math.round((n - entero) * 100);
+  const centavosStr = centavos < 10 ? `0${centavos}` : `${centavos}`;
+
+  function Unidades(num) {
+    switch (num) {
+      case 1: return "UN"; case 2: return "DOS"; case 3: return "TRES"; case 4: return "CUATRO";
+      case 5: return "CINCO"; case 6: return "SEIS"; case 7: return "SIETE"; case 8: return "OCHO"; case 9: return "NUEVE";
+    }
+    return "";
+  }
+
+  function Decenas(num) {
+    const decena = Math.floor(num / 10);
+    const unidad = num - (decena * 10);
+    switch (decena) {
+      case 1:
+        switch (unidad) {
+          case 0: return "DIEZ"; case 1: return "ONCE"; case 2: return "DOCE"; case 3: return "TRECE";
+          case 4: return "CATORCE"; case 5: return "QUINCE";
+          default: return "DIECI" + Unidades(unidad);
+        }
+      case 2:
+        if (unidad === 0) return "VEINTE";
+        return "VEINTI" + Unidades(unidad);
+      case 3: return DecenasY("TREINTA", unidad);
+      case 4: return DecenasY("CUARENTA", unidad);
+      case 5: return DecenasY("CINCUENTA", unidad);
+      case 6: return DecenasY("SESENTA", unidad);
+      case 7: return DecenasY("SETENTA", unidad);
+      case 8: return DecenasY("OCHENTA", unidad);
+      case 9: return DecenasY("NOVENTA", unidad);
+      case 0: return Unidades(unidad);
+    }
+  }
+
+  function DecenasY(strSin, numUnidades) {
+    if (numUnidades > 0) return strSin + " Y " + Unidades(numUnidades);
+    return strSin;
+  }
+
+  function Centenas(num) {
+    const centenas = Math.floor(num / 100);
+    const decenas = num - (centenas * 100);
+    switch (centenas) {
+      case 1: if (decenas > 0) return "CIENTO " + Decenas(decenas); return "CIEN";
+      case 2: return "DOSCIENTOS " + Decenas(decenas);
+      case 3: return "TRESCIENTOS " + Decenas(decenas);
+      case 4: return "CUATROCIENTOS " + Decenas(decenas);
+      case 5: return "QUINIENTOS " + Decenas(decenas);
+      case 6: return "SEISCIENTOS " + Decenas(decenas);
+      case 7: return "SETECIENTOS " + Decenas(decenas);
+      case 8: return "OCHOCIENTOS " + Decenas(decenas);
+      case 9: return "NOVECIENTOS " + Decenas(decenas);
+    }
+    return Decenas(decenas);
+  }
+
+  function Seccion(num, divisor, strSingular, strPlural) {
+    const cientos = Math.floor(num / divisor);
+    const resto = num - (cientos * divisor);
+    let letras = "";
+    if (cientos > 0) {
+      if (cientos > 1) letras = Centenas(cientos) + " " + strPlural;
+      else letras = strSingular;
+    }
+    if (resto > 0) letras += " ";
+    return { letras, resto };
+  }
+
+  function Millones(num) {
+    const divisor = 1000000;
+    const cientos = Math.floor(num / divisor);
+    const resto = num - (cientos * divisor);
+    let strMillones = "";
+    if (cientos === 1) strMillones = "UN MILLON";
+    if (cientos > 1) strMillones = Centenas(cientos) + " MILLONES";
+    return { letras: strMillones, resto };
+  }
+
+  function Miles(num) {
+    const divisor = 1000;
+    const cientos = Math.floor(num / divisor);
+    const resto = num - (cientos * divisor);
+    let strMiles = "";
+    if (cientos === 1) strMiles = "UN MIL";
+    if (cientos > 1) strMiles = Centenas(cientos) + " MIL";
+    return { letras: strMiles, resto };
+  }
+
+  if (entero === 0) return `CERO PESOS ${centavosStr}/100 M.N.`;
+
+  let res = Millones(entero);
+  let texto = res.letras;
+  let resto = res.resto;
+
+  res = Miles(resto);
+  if (texto && res.letras) texto += " ";
+  texto += res.letras;
+  resto = res.resto;
+
+  if (resto > 0) {
+    if (texto) texto += " ";
+    texto += Centenas(resto);
+  }
+
+  return `${texto.trim()} PESOS ${centavosStr}/100 M.N.`;
+}
 
 function findPrecio(priceBook, id) {
   const m = priceBook.materiales.find((x) => x.id === id);
@@ -163,8 +273,6 @@ function calcConcepto(matrizKey, cantidad, priceBook, params, overrideRendimient
   const puTotal = base.costoMateriales + base.costoMO + herrMenor + eqSeguridad;
   return { ...base, matrizKey, cantidad, herrMenor, eqSeguridad, puTotal, total: puTotal * cantidad };
 }
-
-/* --- Cálculo por capítulo --- */
 
 function calcPreliminares(p, priceBook, params) {
   const items = [];
@@ -217,7 +325,7 @@ function calcEstructuras(p, priceBook, params) {
     const costoConcreto = volumen * pConcreto, costoAcero = aceroKg * pAcero, costoCimbra = cimbraM2 * pCimbra;
     const costoMateriales = costoConcreto + costoAcero + costoCimbra;
     const cuadrilla = findCuadrilla(priceBook, "MO-05");
-    const rendimiento = 0.8; // m3 / jornada armado+cimbrado+colado
+    const rendimiento = 0.8;
     const costoMO = volumen > 0 ? (volumen / rendimiento) * cuadrilla.precio : 0;
     const herrMenor = costoMO * (num(params.herramientaMenor) / 100);
     const eqSeguridad = costoMO * (num(params.equipoSeguridad) / 100);
@@ -322,21 +430,39 @@ function calcInstalaciones(p, priceBook, params) {
 
 function calcularPresupuesto(partidas, priceBook, params) {
   const calcMap = { preliminares: calcPreliminares, albanileria: calcAlbanileria, estructuras: calcEstructuras, acabados: calcAcabados, pisos: calcPisos, canceleria: calcCanceleria, instalaciones: calcInstalaciones };
+  const factorSobrecosto = 1 + (num(params.indirectos) + num(params.imprevistos)) / 100;
+
   const capitulos = CAPITULOS_META.map((meta) => {
     const p = partidas[meta.key];
-    const items = p.aplica ? calcMap[meta.key](p, priceBook, params) : [];
-    const subtotal = items.reduce((a, b) => a + b.total, 0);
-    return { ...meta, aplica: p.aplica, items, subtotal };
+    const itemsRaw = p.aplica ? calcMap[meta.key](p, priceBook, params) : [];
+    
+    // Aplicar factor de sobrecosto a cada item individualmente para la vista limpia del cliente
+    const items = itemsRaw.map(it => {
+      const puTotalConSobrecosto = it.puTotal * factorSobrecosto;
+      const totalConSobrecosto = it.total * factorSobrecosto;
+      return {
+        ...it,
+        puTotalCliente: puTotalConSobrecosto,
+        totalCliente: totalConSobrecosto
+      };
+    });
+
+    const subtotalDirecto = items.reduce((a, b) => a + b.total, 0);
+    const subtotalCliente = items.reduce((a, b) => a + b.totalCliente, 0);
+
+    return { ...meta, aplica: p.aplica, items, subtotal: subtotalDirecto, subtotalCliente };
   });
+
   const subtotalDirecto = capitulos.reduce((a, c) => a + c.subtotal, 0);
   const indirectos = subtotalDirecto * (num(params.indirectos) / 100);
   const imprevistos = subtotalDirecto * (num(params.imprevistos) / 100);
   const total = subtotalDirecto + indirectos + imprevistos;
+
   return { capitulos, subtotalDirecto, indirectos, imprevistos, total };
 }
 
 /* -------------------------------------------------------------------------
-   3. PERSISTENCIA (Anthropic artifact storage — sustituye a LocalStorage)
+   3. PERSISTENCIA
    ------------------------------------------------------------------------- */
 
 const STORAGE_KEYS = { priceBook: "prisma:pricebook:v1", historial: "prisma:historial:v1" };
@@ -450,7 +576,6 @@ function SectionCard({ icon: Icon, title, subtitle, right, children, accent = fa
   );
 }
 
-/* Blueprint grid texture (used sparingly as a signature accent) */
 function BlueprintTexture({ className = "" }) {
   return (
     <svg className={`pointer-events-none absolute inset-0 w-full h-full opacity-[0.05] ${className}`} preserveAspectRatio="none">
@@ -1039,7 +1164,7 @@ function Screen4({ priceBook, setPriceBook, saving }) {
 }
 
 /* -------------------------------------------------------------------------
-   10. PANTALLA 5 — RESUMEN Y PDF
+   10. PANTALLA 5 — RESUMEN Y REPORTE IMPRESO / PDF
    ------------------------------------------------------------------------- */
 
 function LineaResumen({ label, value, bold, accent, big }) {
@@ -1051,7 +1176,8 @@ function LineaResumen({ label, value, bold, accent, big }) {
   );
 }
 
-function PrintReport({ proyecto, presupuesto, params }) {
+/* REPORTE LIMPIO PARA EL CLIENTE (PDF) SIN DESGLOSE DE INDIRECTOS/UTILIDAD */
+function PrintReport({ proyecto, presupuesto }) {
   const activos = presupuesto.capitulos.filter((c) => c.aplica && c.items.length > 0);
   const fecha = new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
   return (
@@ -1071,7 +1197,7 @@ function PrintReport({ proyecto, presupuesto, params }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6 text-[12px]">
+        <div className="grid grid-cols-2 gap-4 mb-6 text-[12px] bg-black/[0.02] p-4 rounded border border-black/10">
           <div><span className="font-bold">Cliente:</span> {proyecto.cliente || "—"}</div>
           <div><span className="font-bold">Ubicación:</span> {proyecto.ubicacion || "—"}</div>
           <div><span className="font-bold">Tipo de Inmueble:</span> {proyecto.tipo}</div>
@@ -1080,30 +1206,69 @@ function PrintReport({ proyecto, presupuesto, params }) {
         </div>
 
         {activos.map((cap) => (
-          <div key={cap.key} className="mb-4 break-inside-avoid">
-            <div className="font-display text-[13px] bg-black/5 px-2 py-1.5 mb-1">{cap.nombre}</div>
+          <div key={cap.key} className="mb-5 break-inside-avoid">
+            <div className="font-display text-[13px] bg-black/5 px-2.5 py-1.5 mb-1.5 rounded-sm">{cap.nombre}</div>
             <table className="w-full text-[11px] border-collapse">
-              <thead><tr className="text-left text-[#5B6560]"><th className="py-1">Concepto</th><th className="py-1 w-20">Cant.</th><th className="py-1 w-16">Und.</th><th className="py-1 w-24 text-right">P.U.</th><th className="py-1 w-28 text-right">Importe</th></tr></thead>
+              <thead>
+                <tr className="text-left text-[#5B6560] border-b border-black/20">
+                  <th className="py-1.5">Concepto</th>
+                  <th className="py-1.5 w-20">Cant.</th>
+                  <th className="py-1.5 w-16">Und.</th>
+                  <th className="py-1.5 w-24 text-right">P.U.</th>
+                  <th className="py-1.5 w-28 text-right">Importe</th>
+                </tr>
+              </thead>
               <tbody>
                 {cap.items.map((it) => (
-                  <tr key={it.id} className="border-t border-black/10"><td className="py-1 pr-2">{it.concepto}</td><td className="py-1 tabular-nums">{it.cantidad}</td><td className="py-1">{it.unidad}</td><td className="py-1 text-right tabular-nums">{money(it.puTotal)}</td><td className="py-1 text-right tabular-nums font-bold">{money(it.total)}</td></tr>
+                  <tr key={it.id} className="border-t border-black/10">
+                    <td className="py-1.5 pr-2">{it.concepto}</td>
+                    <td className="py-1.5 tabular-nums">{it.cantidad}</td>
+                    <td className="py-1.5">{it.unidad}</td>
+                    <td className="py-1.5 text-right tabular-nums">{money(it.puTotalCliente)}</td>
+                    <td className="py-1.5 text-right tabular-nums font-bold">{money(it.totalCliente)}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
-            <div className="text-right text-[11.5px] font-bold mt-1">Subtotal: {money(cap.subtotal)}</div>
+            <div className="text-right text-[11.5px] font-bold mt-1.5">Subtotal Capítulo: {money(cap.subtotalCliente)}</div>
           </div>
         ))}
 
-        <div className="mt-6 border-t-2 border-[#14181B] pt-3 ml-auto w-72 text-[12px]">
-          <div className="flex justify-between py-0.5"><span>Subtotal Directo de Obra</span><span className="tabular-nums">{money(presupuesto.subtotalDirecto)}</span></div>
-          <div className="flex justify-between py-0.5"><span>(+) Indirectos y Utilidad ({params.indirectos}%)</span><span className="tabular-nums">{money(presupuesto.indirectos)}</span></div>
-          <div className="flex justify-between py-0.5"><span>(+) Reserva para Imprevistos ({params.imprevistos}%)</span><span className="tabular-nums">{money(presupuesto.imprevistos)}</span></div>
-          <div className="flex justify-between py-1.5 border-t border-black/20 mt-1 font-bold text-[14px]"><span>Costo Total Paramétrico</span><span className="tabular-nums">{money(presupuesto.total)}</span></div>
-          {num(proyecto.superficie) > 0 && <div className="flex justify-between text-[11px] text-[#5B6560]"><span>Costo Paramétrico por m²</span><span className="tabular-nums">{money(presupuesto.total / num(proyecto.superficie))} / m²</span></div>}
+        {/* TOTAL DIRECTO SÓLO CON COSTO FINAL INTEGRADO */}
+        <div className="mt-6 border-t-2 border-[#14181B] pt-4 ml-auto w-80 text-[12px]">
+          <div className="flex justify-between py-1 font-bold text-[15px]">
+            <span>TOTAL DEL PROYECTO</span>
+            <span className="tabular-nums">{money(presupuesto.total)}</span>
+          </div>
+          {num(proyecto.superficie) > 0 && (
+            <div className="flex justify-between text-[11px] text-[#5B6560] pt-0.5">
+              <span>Costo por m²</span>
+              <span className="tabular-nums">{money(presupuesto.total / num(proyecto.superficie))} / m²</span>
+            </div>
+          )}
         </div>
 
-        <div className="mt-10 pt-4 border-t border-black/10 text-[10px] text-[#5B6560] flex justify-between">
-          <span>Prisma Arquitectura · Presupuesto paramétrico de referencia, sujeto a levantamiento y proyecto ejecutivo.</span>
+        {/* IMPORTE EN LETRA EN FORMATO OFICIAL */}
+        <div className="mt-4 p-3 bg-black/[0.03] border border-black/15 rounded text-[11px] font-bold">
+          <span className="text-[#5B6560] font-normal uppercase">Importe con letra: </span>
+          {numeroALetras(presupuesto.total)}
+        </div>
+
+        {/* NOTAS Y LEYENDA DEL 16% DE IVA */}
+        <div className="mt-8 pt-4 border-t border-black/20 text-[10.5px] text-[#444] space-y-1.5 leading-relaxed">
+          <p className="font-bold text-[#14181B] uppercase tracking-wider mb-1">Notas y Condiciones Comerciales:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Los precios presentados corresponden a costos parametrizados expresados en Moneda Nacional (MXN).</li>
+            <li className="font-bold text-[#14181B]">
+              En caso de requerir comprobante fiscal (factura), los precios presentados son MÁS EL 16% DE I.V.A.
+            </li>
+            <li>Esta propuesta parametrizada tiene una vigencia de 15 días naturales a partir de su fecha de emisión.</li>
+            <li>Los alcances finales y especificaciones de materiales se ratificarán al momento de formalizar el contrato ejecutivo de obra.</li>
+          </ul>
+        </div>
+
+        <div className="mt-12 pt-3 border-t border-black/10 text-[9.5px] text-[#5B6560] flex justify-between items-center">
+          <span>Prisma Arquitectura · Cotizador Paramétrico</span>
           <span>contacto@prismaarquitectura.mx</span>
         </div>
       </div>
@@ -1117,8 +1282,8 @@ function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHisto
 
   const resumenTexto = () => {
     let t = `*Presupuesto Paramétrico — Prisma Arquitectura*\nCliente: ${proyecto.cliente || "—"}\nUbicación: ${proyecto.ubicacion || "—"}\nSuperficie: ${proyecto.superficie || 0} m²\n\n`;
-    activos.forEach((c) => { t += `${c.nombre}: ${money(c.subtotal)}\n`; });
-    t += `\nSubtotal Directo: ${money(presupuesto.subtotalDirecto)}\nIndirectos y Utilidad (${params.indirectos}%): ${money(presupuesto.indirectos)}\nImprevistos (${params.imprevistos}%): ${money(presupuesto.imprevistos)}\n*Costo Total: ${money(presupuesto.total)}*`;
+    activos.forEach((c) => { t += `${c.nombre}: ${money(c.subtotalCliente)}\n`; });
+    t += `\n*TOTAL DEL PROYECTO: ${money(presupuesto.total)}*\nImporte con letra: ${numeroALetras(presupuesto.total)}\n\n_En caso de requerir factura, los precios son más el 16% de I.V.A._`;
     return t;
   };
 
@@ -1135,7 +1300,7 @@ function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHisto
               <p className="text-[13px] text-[color:var(--pr-muted)]">No hay partidas activas. Regresa a la Pantalla 2 para capturar conceptos.</p>
             ) : (
               <div className="space-y-1 divide-y divide-[color:var(--pr-line)]/70">
-                {activos.map((c) => <LineaResumen key={c.key} label={c.nombre} value={money(c.subtotal)} />)}
+                {activos.map((c) => <LineaResumen key={c.key} label={c.nombre} value={money(c.subtotalCliente)} />)}
               </div>
             )}
           </SectionCard>
@@ -1218,7 +1383,6 @@ export default function PrismaApp() {
     })();
   }, []);
 
-  // autosave tarifario
   const firstPB = React.useRef(true);
   useEffect(() => {
     if (firstPB.current) { firstPB.current = false; return; }
