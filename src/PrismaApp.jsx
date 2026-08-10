@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v4.1)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v5.0 Clean)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
@@ -56,6 +56,7 @@ const DEFAULT_MANO_OBRA = [
   { id: "MO-03", codigo: "MO-03", descripcion: "Cuadrilla Pintor (Oficial Pintor + Peón)", integrantes: 2, unidad: "jornada", precio: 1100 },
   { id: "MO-04", codigo: "MO-04", descripcion: "Cuadrilla Electricista / Plomero (Oficial + Ayudante)", integrantes: 2, unidad: "jornada", precio: 1300 },
   { id: "MO-05", codigo: "MO-05", descripcion: "Cuadrilla Fierrero / Estructurista", integrantes: 2, unidad: "jornada", precio: 1450 },
+  { id: "MO-06", codigo: "MO-06", descripcion: "Cuadrilla Aluminero / Cancelero (Oficial + Ayudante)", integrantes: 2, unidad: "jornada", precio: 1350 },
 ];
 
 const DEFAULT_EQUIPO = [
@@ -72,7 +73,7 @@ const MATRICES = {
   demol_mamposteria: { nombre: "Demolición Muro Mampostería", unidad: "m2", materiales: [{ id: "flete_pesado", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
   demol_ligero: { nombre: "Demolición Muro Ligero (Panel Yeso/Durock)", unidad: "m2", materiales: [{ id: "flete_ligero", cant: 1 }], cuadrilla: "MO-01", rendimiento: 20 },
   demol_piso: { nombre: "Demolición / Levantamiento de Piso o Acabado Cerámico/Porcelanato", unidad: "m2", materiales: [{ id: "flete_piso", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
-  demol_vano: { nombre: "Retiro / Desmantelamiento de Puertas y Ventanas (Carpintería / Aluminio / Herrería)", unidad: "m2", materiales: [{ id: "flete_carpinteria", cant: 1 }], cuadrilla: "MO-01", rendimiento: 25 },
+  demol_vano: { nombre: "Retiro / Desmantelamiento de Puertas y Ventanas (Carpintería / Aluminio / Herrería)", unidad: "m2", materiales: [{ id: "flete_carpinteria", cant: 1 }], cuadrilla: "MO-06", rendimiento: 25 },
   muro_tabique: { nombre: "Muro de Tabique Rojo Recocido", unidad: "m2", materiales: [{ id: "tabique", cant: 32 }, { id: "mortero", cant: 0.03 }], cuadrilla: "MO-01", rendimiento: 6 },
   acabado_Enjarre: { nombre: "Enjarre o Aplanado Cemento-Arena", unidad: "m2", materiales: [{ id: "cemento_arena_aplanado", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
   acabado_Yeso: { nombre: "Aplanado de Yeso", unidad: "m2", materiales: [{ id: "yeso", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
@@ -440,11 +441,11 @@ function calcCanceleria(p, priceBook, params) {
     const modulaciones = Math.max(1, num(el.modulaciones) || 1);
     const factorMod = 1 + 0.08 * (modulaciones - 1);
     const area = areaBase * factorMod;
+    const cuadrilla = findCuadrilla(priceBook, "MO-06");
 
     if (el.accion === "reubicacion") {
       const pInsumo = findPrecio(priceBook, "fijaciones_reubicacion");
       const costoMateriales = pInsumo;
-      const cuadrilla = findCuadrilla(priceBook, "MO-01");
       const rendimiento = 5; 
       const costoMO = (area / rendimiento) * cuadrilla.precio;
       const herrMenor = costoMO * (num(params.herramientaMenor) / 100);
@@ -464,7 +465,6 @@ function calcCanceleria(p, priceBook, params) {
     const insumo = priceBook.materiales.find((m) => m.id === matId);
     const precioM2 = insumo ? insumo.precio : 0;
     const costoMateriales = area * precioM2;
-    const cuadrilla = findCuadrilla(priceBook, "MO-01");
     const rendimiento = 6;
     const costoMO = (area / rendimiento) * cuadrilla.precio;
     const herrMenor = costoMO * (num(params.herramientaMenor) / 100);
@@ -556,9 +556,9 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V4.1
+   PERSISTENCIA V5.0 (Cuadrilla MO-06 Aluminero / Cancelero)
    ------------------------------------------------------------------------- */
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v4.1", historial: "prisma:historial:v4.1" };
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v5.0", historial: "prisma:historial:v5.0" };
 
 function storageGet(key) {
   try {
@@ -1432,7 +1432,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v4.1 guardado correctamente!");
+    showToast("¡Tarifario v5.0 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
