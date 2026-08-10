@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v3)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v3 Final)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
@@ -463,7 +463,7 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V3 (localStorage limpia)
+   PERSISTENCIA V3 (Fuerza la actualización borrando la memoria v1)
    ------------------------------------------------------------------------- */
 const STORAGE_KEYS = { priceBook: "prisma:pricebook:v3", historial: "prisma:historial:v3" };
 
@@ -482,7 +482,7 @@ function storageSet(key, value) {
 }
 
 /* -------------------------------------------------------------------------
-   COMPONENTES UI
+   COMPONENTES UI Y PANTALLAS
    ------------------------------------------------------------------------- */
 function DiamondToggle({ checked, onChange, labelOn = "Aplica", labelOff = "No Aplica" }) {
   return (
