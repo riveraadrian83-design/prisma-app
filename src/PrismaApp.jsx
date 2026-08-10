@@ -1,20 +1,18 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Building2, ClipboardList, Calculator, Database, FileText, Plus, Trash2,
   ChevronDown, Send, Save, Download, Settings2, Layers, Zap,
-  Droplets, PaintBucket, DoorOpen, Boxes, Loader2, RefreshCw, History,
+  Droplets, PaintBucket, DoorOpen, Boxes, History,
   ArrowLeft, ArrowRight, MapPin, Ruler, CheckCircle2,
   FolderOpen, HardHat, ShieldAlert
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v4.0 Definitiva)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v4.1)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
 const uid = () => Math.random().toString(36).slice(2, 10);
-
-const MARCAS = ["Comex", "Helvex", "Crest", "Cemex", "Panel Rey", "USG", "The Home Depot", "Ferretería La Siete", "El Surtidor", "Eléctrica Santiago"];
 
 const DEFAULT_MATERIALES = [
   { id: "tabique", codigo: "MAT-01", descripcion: "Tabique Rojo Recocido", unidad: "pza", precio: 8.5, marca: "Ferretería La Siete" },
@@ -85,7 +83,7 @@ const MATRICES = {
   pintura_vinilica: { nombre: "Pintura Vinílica (2 manos)", unidad: "m2", materiales: [{ id: "pintura_vinilica", cant: 1 }], cuadrilla: "MO-03", rendimiento: 35 },
   pasta_texturizada: { nombre: "Pasta Texturizada", unidad: "m2", materiales: [{ id: "pasta_texturizada", cant: 1 }], cuadrilla: "MO-03", rendimiento: 20 },
   "piso_Cerámico": { nombre: "Piso Cerámico", unidad: "m2", materiales: [{ id: "piso_ceramico", cant: 1 }], cuadrilla: "MO-01", rendimiento: 18 },
-  piso_Porcelanato": { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
+  piso_Porcelanato: { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
   "piso_Concreto Pulido": { nombre: "Concreto Pulido", unidad: "m2", materiales: [{ id: "concreto_pulido_insumo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 30 },
   piso_Terrazzo: { nombre: "Terrazzo", unidad: "m2", materiales: [{ id: "terrazzo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 10 },
   "piso_Duela Laminada": { nombre: "Duela Laminada", unidad: "m2", materiales: [{ id: "duela_laminada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 20 },
@@ -140,8 +138,8 @@ function numeroALetras(monto) {
     switch (num) {
       case 1: return "UN"; case 2: return "DOS"; case 3: return "TRES"; case 4: return "CUATRO";
       case 5: return "CINCO"; case 6: return "SEIS"; case 7: return "SIETE"; case 8: return "OCHO"; case 9: return "NUEVE";
+      default: return "";
     }
-    return "";
   }
 
   function Decenas(num) {
@@ -164,7 +162,7 @@ function numeroALetras(monto) {
       case 7: return DecenasY("SETENTA", unidad);
       case 8: return DecenasY("OCHENTA", unidad);
       case 9: return DecenasY("NOVENTA", unidad);
-      case 0: return Unidades(unidad);
+      default: return Unidades(unidad);
     }
   }
 
@@ -186,8 +184,8 @@ function numeroALetras(monto) {
       case 7: return "SETECIENTOS " + Decenas(decenas);
       case 8: return "OCHOCIENTOS " + Decenas(decenas);
       case 9: return "NOVECIENTOS " + Decenas(decenas);
+      default: return Decenas(decenas);
     }
-    return Decenas(decenas);
   }
 
   function Millones(num) {
@@ -233,6 +231,7 @@ function findPrecio(priceBook, id) {
   const m = priceBook.materiales.find((x) => x.id === id);
   return m ? m.precio : 0;
 }
+
 function findCuadrilla(priceBook, codigo) {
   return priceBook.manoObra.find((x) => x.codigo === codigo) || { precio: 0, descripcion: "—", codigo };
 }
@@ -557,9 +556,9 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V4.0 (Fuerza reseteo total de caché vieja en navegador)
+   PERSISTENCIA V4.1
    ------------------------------------------------------------------------- */
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v4.0", historial: "prisma:historial:v4.0" };
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v4.1", historial: "prisma:historial:v4.1" };
 
 function storageGet(key) {
   try {
@@ -1433,7 +1432,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v4.0 guardado correctamente!");
+    showToast("¡Tarifario v4.1 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
