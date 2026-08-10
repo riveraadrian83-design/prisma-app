@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v3 Final)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v3.3)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
@@ -16,7 +16,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 
 const MARCAS = ["Comex", "Helvex", "Crest", "Cemex", "Panel Rey", "USG", "The Home Depot", "Ferretería La Siete", "El Surtidor", "Eléctrica Santiago"];
 
-// Tarifario actualizado con precios reales CDMX
+// Tarifario actualizado con precios reales CDMX + Demolición Piso + Retiro Carpintería
 const DEFAULT_MATERIALES = [
   { id: "tabique", codigo: "MAT-01", descripcion: "Tabique Rojo Recocido", unidad: "pza", precio: 8.5, marca: "Ferretería La Siete" },
   { id: "mortero", codigo: "MAT-02", descripcion: "Mortero Cemento-Arena (junteo)", unidad: "m3", precio: 3100, marca: "Cemex" },
@@ -48,6 +48,8 @@ const DEFAULT_MATERIALES = [
   { id: "cal_trazo", codigo: "MAT-28", descripcion: "Cal p/Trazo y Nivelación", unidad: "m2", precio: 4, marca: "Ferretería La Siete" },
   { id: "flete_pesado", codigo: "MAT-29", descripcion: "Acarreo/Retiro Escombro (mampostería)", unidad: "m2", precio: 35, marca: "Ferretería La Siete" },
   { id: "flete_ligero", codigo: "MAT-30", descripcion: "Acarreo/Retiro Escombro (panel ligero)", unidad: "m2", precio: 22, marca: "Ferretería La Siete" },
+  { id: "flete_piso", codigo: "MAT-31", descripcion: "Acarreo/Retiro Escombro (piso/recubrimiento)", unidad: "m2", precio: 28, marca: "Ferretería La Siete" },
+  { id: "flete_carpinteria", codigo: "MAT-32", descripcion: "Acarreo/Retiro Madera/Carpintería", unidad: "m2", precio: 20, marca: "Ferretería La Siete" },
 ];
 
 const DEFAULT_MANO_OBRA = [
@@ -71,6 +73,8 @@ const MATRICES = {
   trazo: { nombre: "Trazo y Nivelación", unidad: "m2", materiales: [{ id: "cal_trazo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 80 },
   demol_mamposteria: { nombre: "Demolición Muro Mampostería", unidad: "m2", materiales: [{ id: "flete_pesado", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
   demol_ligero: { nombre: "Demolición Muro Ligero (Panel Yeso/Durock)", unidad: "m2", materiales: [{ id: "flete_ligero", cant: 1 }], cuadrilla: "MO-01", rendimiento: 20 },
+  demol_piso: { nombre: "Demolición / Levantamiento de Piso o Acabado Cerámico/Porcelanato", unidad: "m2", materiales: [{ id: "flete_piso", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
+  demol_carpinteria: { nombre: "Retiro / Desmantelamiento de Puertas y Ventanas de Carpintería", unidad: "m2", materiales: [{ id: "flete_carpinteria", cant: 1 }], cuadrilla: "MO-01", rendimiento: 25 },
   muro_tabique: { nombre: "Muro de Tabique Rojo Recocido", unidad: "m2", materiales: [{ id: "tabique", cant: 32 }, { id: "mortero", cant: 0.03 }], cuadrilla: "MO-01", rendimiento: 6 },
   acabado_Enjarre: { nombre: "Enjarre o Aplanado Cemento-Arena", unidad: "m2", materiales: [{ id: "cemento_arena_aplanado", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
   acabado_Yeso: { nombre: "Aplanado de Yeso", unidad: "m2", materiales: [{ id: "yeso", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
@@ -290,8 +294,19 @@ function calcPreliminares(p, priceBook, params) {
   p.demoliciones.forEach((d) => {
     const cant = num(d.m2);
     if (cant <= 0) return;
-    const key = d.tipo === "mamposteria" ? "demol_mamposteria" : "demol_ligero";
-    items.push({ id: d.id, concepto: `Demolición ${d.tipo === "mamposteria" ? "Muro de Mampostería" : "Muro Ligero (Panel Yeso/Durock)"}`, ...calcConcepto(key, cant, priceBook, params) });
+    let key = "demol_mamposteria";
+    let desc = "Muro de Mampostería";
+    if (d.tipo === "ligero") {
+      key = "demol_ligero";
+      desc = "Muro Ligero (Panel Yeso/Durock)";
+    } else if (d.tipo === "piso") {
+      key = "demol_piso";
+      desc = "Piso / Acabado de Cerámica o Porcelanato";
+    } else if (d.tipo === "carpinteria") {
+      key = "demol_carpinteria";
+      desc = "Puertas y Ventanas de Carpintería";
+    }
+    items.push({ id: d.id, concepto: `Demolición / Retiro de ${desc}`, ...calcConcepto(key, cant, priceBook, params) });
   });
   p.conceptosExtra.forEach((c) => {
     const cant = num(c.cantidad), pu = num(c.pu);
@@ -463,9 +478,9 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V3 (Fuerza la actualización borrando la memoria v1)
+   PERSISTENCIA V3.3 (Incluye Retiro de Carpintería)
    ------------------------------------------------------------------------- */
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v3", historial: "prisma:historial:v3" };
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v3.3", historial: "prisma:historial:v3.3" };
 
 function storageGet(key) {
   try {
@@ -758,6 +773,7 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
         Activa cada partida con el interruptor. Las partidas desactivadas no se incluyen en los totales ni en la exportación.
       </div>
 
+      {/* 01. PRELIMINARES */}
       <CapituloShell meta={CAPITULOS_META[0]} aplica={partidas.preliminares.aplica} subtotal={subtotalOf("preliminares")} onToggle={(v) => update("preliminares", (p) => ({ ...p, aplica: v }))}>
         <div className="space-y-5">
           <div className="grid sm:grid-cols-2 gap-4">
@@ -769,13 +785,15 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
             </Field>
           </div>
           <div>
-            <span className="block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2">Demoliciones</span>
-            <RowList addLabel="Agregar Demolición" onAdd={() => update("preliminares", (p) => ({ ...p, demoliciones: [...p.demoliciones, { id: uid(), tipo: "mamposteria", m2: "" }] }))}>
+            <span className="block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2">Demoliciones y Desmantelamientos</span>
+            <RowList addLabel="Agregar Demolición / Retiro" onAdd={() => update("preliminares", (p) => ({ ...p, demoliciones: [...p.demoliciones, { id: uid(), tipo: "mamposteria", m2: "" }] }))}>
               {partidas.preliminares.demoliciones.map((d) => (
                 <div key={d.id} className="flex items-center gap-2">
                   <Select value={d.tipo} onChange={(e) => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.map((x) => x.id === d.id ? { ...x, tipo: e.target.value } : x) }))} className="flex-1">
                     <option value="mamposteria">Muro de Mampostería</option>
                     <option value="ligero">Muro Ligero (Panel Yeso/Durock)</option>
+                    <option value="piso">Piso / Acabado de Cerámica o Porcelanato</option>
+                    <option value="carpinteria">Puertas y Ventanas de Carpintería</option>
                   </Select>
                   <NumberInput value={d.m2} onChange={(e) => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.map((x) => x.id === d.id ? { ...x, m2: e.target.value } : x) }))} placeholder="m²" className="w-28" min="0" />
                   <IconBtn tone="danger" onClick={() => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.filter((x) => x.id !== d.id) }))}><Trash2 size={15} /></IconBtn>
@@ -786,6 +804,7 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
         </div>
       </CapituloShell>
 
+      {/* 02. ALBAÑILERÍA */}
       <CapituloShell meta={CAPITULOS_META[1]} aplica={partidas.albanileria.aplica} subtotal={subtotalOf("albanileria")} onToggle={(v) => update("albanileria", (p) => ({ ...p, aplica: v }))}>
         <div className="space-y-5">
           <Field label="Muros de Tabique Rojo Recocido (m²)">
@@ -817,6 +836,45 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
         </div>
       </CapituloShell>
 
+      {/* 03. ESTRUCTURAS */}
+      <CapituloShell meta={CAPITULOS_META[2]} aplica={partidas.estructuras.aplica} subtotal={subtotalOf("estructuras")} onToggle={(v) => update("estructuras", (p) => ({ ...p, aplica: v }))}>
+        <RowList addLabel="Agregar Elemento Estructural" onAdd={() => update("estructuras", (p) => ({ ...p, elementos: [...p.elementos, { id: uid(), tipo: "Columna", ancho: "", peralte: "", longitud: "" }] }))}>
+          {partidas.estructuras.elementos.map((el) => (
+            <div key={el.id} className="rounded-lg border border-[color:var(--pr-line)] p-3.5">
+              <div className="grid sm:grid-cols-[1.3fr_1fr_1fr_1fr_auto] gap-2.5 items-end">
+                <Field label="Elemento">
+                  <Select value={el.tipo} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, tipo: e.target.value } : x) }))}>
+                    {TIPOS_ESTRUCTURA.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                </Field>
+                <Field label="Ancho (cm)"><NumberInput value={el.ancho} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, ancho: e.target.value } : x) }))} min="0" /></Field>
+                <Field label="Peralte (cm)"><NumberInput value={el.peralte} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, peralte: e.target.value } : x) }))} min="0" /></Field>
+                <Field label="Altura / Long. (m)"><NumberInput value={el.longitud} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, longitud: e.target.value } : x) }))} min="0" /></Field>
+                <IconBtn tone="danger" onClick={() => update("estructuras", (p) => ({ ...p, elementos: p.elementos.filter((x) => x.id !== el.id) }))}><Trash2 size={15} /></IconBtn>
+              </div>
+            </div>
+          ))}
+        </RowList>
+      </CapituloShell>
+
+      {/* 04. ACABADOS */}
+      <CapituloShell meta={CAPITULOS_META[3]} aplica={partidas.acabados.aplica} subtotal={subtotalOf("acabados")} onToggle={(v) => update("acabados", (p) => ({ ...p, aplica: v }))}>
+        <div className="space-y-4">
+          <Field label="Tipo de Aplicación">
+            <div className="grid grid-cols-2 gap-2.5">
+              {[["vinilica", "Pintura Vinílica (2 manos)"], ["pasta", "Pasta Texturizada"]].map(([v, l]) => (
+                <button key={v} type="button" onClick={() => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, tipo: v } }))} className={`rounded-lg border px-3 py-2.5 text-[12.5px] font-bold text-left transition-colors ${partidas.acabados.pintura.tipo === v ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}>{l}</button>
+              ))}
+            </div>
+          </Field>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Muros (m²)"><NumberInput value={partidas.acabados.pintura.m2Muros} onChange={(e) => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, m2Muros: e.target.value } }))} placeholder="0" min="0" /></Field>
+            <Field label="Plafones (m²)"><NumberInput value={partidas.acabados.pintura.m2Plafones} onChange={(e) => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, m2Plafones: e.target.value } }))} placeholder="0" min="0" /></Field>
+          </div>
+        </div>
+      </CapituloShell>
+
+      {/* 05. PISOS Y RECUBRIMIENTOS */}
       <CapituloShell meta={CAPITULOS_META[4]} aplica={partidas.pisos.aplica} subtotal={subtotalOf("pisos")} onToggle={(v) => update("pisos", (p) => ({ ...p, aplica: v }))}>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Tipo de Recubrimiento">
@@ -827,6 +885,74 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
           <Field label="Superficie (m²)">
             <NumberInput value={partidas.pisos.m2} onChange={(e) => update("pisos", (p) => ({ ...p, m2: e.target.value }))} placeholder="0" min="0" />
           </Field>
+        </div>
+      </CapituloShell>
+
+      {/* 06. CANCELERÍA Y HERRERÍA */}
+      <CapituloShell meta={CAPITULOS_META[5]} aplica={partidas.canceleria.aplica} subtotal={subtotalOf("canceleria")} onToggle={(v) => update("canceleria", (p) => ({ ...p, aplica: v }))}>
+        <RowList addLabel="Agregar Vano (Puerta / Ventana)" onAdd={() => update("canceleria", (p) => ({ ...p, elementos: [...p.elementos, { id: uid(), material: 'Aluminio (2")', elemento: "Ventana", apertura: "Corrediza", ancho: "", alto: "", modulaciones: 1 }] }))}>
+          {partidas.canceleria.elementos.map((el) => (
+            <div key={el.id} className="rounded-lg border border-[color:var(--pr-line)] p-3.5 space-y-2.5">
+              <div className="grid sm:grid-cols-3 gap-2.5">
+                <Field label="Material">
+                  <Select value={el.material} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, material: e.target.value } : x) }))}>
+                    {Object.keys(MATERIALES_CANCELERIA).map((m) => <option key={m} value={m}>{m}</option>)}
+                  </Select>
+                </Field>
+                <Field label="Elemento">
+                  <Select value={el.elemento} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, elemento: e.target.value } : x) }))}>
+                    <option value="Puerta">Puerta</option><option value="Ventana">Ventana</option>
+                  </Select>
+                </Field>
+                <Field label="Apertura">
+                  <Select value={el.apertura} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, apertura: e.target.value } : x) }))}>
+                    <option>Fijo</option><option>Corrediza</option><option>Abatible</option>
+                  </Select>
+                </Field>
+              </div>
+              <div className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-2.5 items-end">
+                <Field label="Ancho (cm)"><NumberInput value={el.ancho} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, ancho: e.target.value } : x) }))} min="0" /></Field>
+                <Field label="Alto (cm)"><NumberInput value={el.alto} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, alto: e.target.value } : x) }))} min="0" /></Field>
+                <Field label="Modulaciones"><NumberInput value={el.modulaciones} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, modulaciones: e.target.value } : x) }))} min="1" /></Field>
+                <IconBtn tone="danger" onClick={() => update("canceleria", (p) => ({ ...p, elementos: p.elementos.filter((x) => x.id !== el.id) }))}><Trash2 size={15} /></IconBtn>
+              </div>
+            </div>
+          ))}
+        </RowList>
+      </CapituloShell>
+
+      {/* 07. INSTALACIONES */}
+      <CapituloShell meta={CAPITULOS_META[6]} aplica={partidas.instalaciones.aplica} subtotal={subtotalOf("instalaciones")} onToggle={(v) => update("instalaciones", (p) => ({ ...p, aplica: v }))}>
+        <div className="space-y-5">
+          <div>
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2"><Zap size={13} /> Eléctrica — Cotización por Salida</span>
+            <RowList addLabel="Agregar Salida Eléctrica" onAdd={() => update("instalaciones", (p) => ({ ...p, electrica: [...p.electrica, { id: uid(), tipo: "Contacto", cantidad: "", metrosAdicionales: "" }] }))}>
+              {partidas.instalaciones.electrica.map((s) => (
+                <div key={s.id} className="grid grid-cols-[1.2fr_80px_110px_auto] gap-2 items-center">
+                  <Select value={s.tipo} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, tipo: e.target.value } : x) }))}>
+                    {TIPOS_SALIDA_ELECTRICA.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                  <NumberInput value={s.cantidad} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="Cant." min="0" />
+                  <NumberInput value={s.metrosAdicionales} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, metrosAdicionales: e.target.value } : x) }))} placeholder="+ ml c/u" min="0" />
+                  <IconBtn tone="danger" onClick={() => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.filter((x) => x.id !== s.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
+          <div>
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2"><Droplets size={13} /> Hidráulica y Sanitaria — Cotización por Salida</span>
+            <RowList addLabel="Agregar Salida Hidrosanitaria" onAdd={() => update("instalaciones", (p) => ({ ...p, hidraulica: [...p.hidraulica, { id: uid(), tipo: "Lavabo", cantidad: "" }] }))}>
+              {partidas.instalaciones.hidraulica.map((s) => (
+                <div key={s.id} className="grid grid-cols-[1.2fr_80px_auto] gap-2 items-center">
+                  <Select value={s.tipo} onChange={(e) => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.map((x) => x.id === s.id ? { ...x, tipo: e.target.value } : x) }))}>
+                    {TIPOS_SALIDA_HIDRAULICA.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                  <NumberInput value={s.cantidad} onChange={(e) => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.map((x) => x.id === s.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="Cant." min="0" />
+                  <IconBtn tone="danger" onClick={() => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.filter((x) => x.id !== s.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
         </div>
       </CapituloShell>
     </div>
@@ -1007,7 +1133,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v3 guardado correctamente!");
+    showToast("¡Tarifario v3.3 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
