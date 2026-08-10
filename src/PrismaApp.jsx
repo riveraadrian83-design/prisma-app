@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v3.8)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v4.0 Definitiva)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
@@ -85,7 +85,7 @@ const MATRICES = {
   pintura_vinilica: { nombre: "Pintura Vinílica (2 manos)", unidad: "m2", materiales: [{ id: "pintura_vinilica", cant: 1 }], cuadrilla: "MO-03", rendimiento: 35 },
   pasta_texturizada: { nombre: "Pasta Texturizada", unidad: "m2", materiales: [{ id: "pasta_texturizada", cant: 1 }], cuadrilla: "MO-03", rendimiento: 20 },
   "piso_Cerámico": { nombre: "Piso Cerámico", unidad: "m2", materiales: [{ id: "piso_ceramico", cant: 1 }], cuadrilla: "MO-01", rendimiento: 18 },
-  piso_Porcelanato: { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
+  piso_Porcelanato": { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
   "piso_Concreto Pulido": { nombre: "Concreto Pulido", unidad: "m2", materiales: [{ id: "concreto_pulido_insumo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 30 },
   piso_Terrazzo: { nombre: "Terrazzo", unidad: "m2", materiales: [{ id: "terrazzo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 10 },
   "piso_Duela Laminada": { nombre: "Duela Laminada", unidad: "m2", materiales: [{ id: "duela_laminada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 20 },
@@ -557,9 +557,9 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V3.8 (Selector Vano Corregido)
+   PERSISTENCIA V4.0 (Fuerza reseteo total de caché vieja en navegador)
    ------------------------------------------------------------------------- */
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v3.8", historial: "prisma:historial:v3.8" };
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v4.0", historial: "prisma:historial:v4.0" };
 
 function storageGet(key) {
   try {
@@ -1433,7 +1433,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v3.8 guardado correctamente!");
+    showToast("¡Tarifario v4.0 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
