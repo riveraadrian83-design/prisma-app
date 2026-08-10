@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Building2, ClipboardList, Calculator, Database, FileText, Plus, Trash2,
-  ChevronDown, Send, Save, Download, X, Settings2, Layers, Wrench, Zap,
+  ChevronDown, Send, Save, Download, Settings2, Layers, Wrench, Zap,
   Droplets, PaintBucket, DoorOpen, Boxes, Loader2, RefreshCw, History,
-  ArrowLeft, ArrowRight, MapPin, Ruler, AlertTriangle, CheckCircle2,
-  FolderOpen, HardHat,
+  ArrowLeft, ArrowRight, MapPin, Ruler, CheckCircle2,
+  FolderOpen, HardHat, ShieldAlert
 } from "lucide-react";
 
 /* =========================================================================
@@ -12,60 +12,57 @@ import {
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
-/* -------------------------------------------------------------------------
-   1. DATOS BASE / TARIFARIO POR DEFECTO
-   ------------------------------------------------------------------------- */
-
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 const MARCAS = ["Comex", "Helvex", "Crest", "Cemex", "Panel Rey", "USG", "The Home Depot", "Ferretería La Siete", "El Surtidor", "Eléctrica Santiago"];
 
+// Tarifario actualizado con precios reales CDMX (Vía Alta / Mercado Actual)
 const DEFAULT_MATERIALES = [
-  { id: "tabique", codigo: "MAT-01", descripcion: "Tabique Rojo Recocido", unidad: "pza", precio: 7.5, marca: "Ferretería La Siete" },
-  { id: "mortero", codigo: "MAT-02", descripcion: "Mortero Cemento-Arena (junteo)", unidad: "m3", precio: 2800, marca: "Cemex" },
-  { id: "cemento_arena_aplanado", codigo: "MAT-03", descripcion: "Cemento-Arena p/Aplanado", unidad: "m2", precio: 45, marca: "Cemex" },
-  { id: "yeso", codigo: "MAT-04", descripcion: "Yeso p/Aplanado", unidad: "m2", precio: 38, marca: "USG" },
-  { id: "estuco", codigo: "MAT-05", descripcion: "Estuco Acabado Fino", unidad: "m2", precio: 65, marca: "Crest" },
-  { id: "azulejo_kit", codigo: "MAT-06", descripcion: "Azulejo + Adhesivo + Boquilla", unidad: "m2", precio: 240, marca: "El Surtidor" },
-  { id: "sellador_aparente", codigo: "MAT-07", descripcion: "Sellador Block Aparente", unidad: "m2", precio: 12, marca: "Comex" },
-  { id: "concreto_200", codigo: "MAT-08", descripcion: "Concreto f'c=200 kg/cm2 (firme)", unidad: "m2", precio: 210, marca: "Cemex" },
-  { id: "malla_electrosoldada", codigo: "MAT-09", descripcion: "Malla Electrosoldada", unidad: "m2", precio: 35, marca: "Cemex" },
-  { id: "concreto_250", codigo: "MAT-10", descripcion: "Concreto Premezclado f'c=250", unidad: "m3", precio: 2450, marca: "Cemex" },
-  { id: "acero_varilla", codigo: "MAT-11", descripcion: "Acero de Refuerzo Habilitado fy=4200", unidad: "kg", precio: 24, marca: "Ferretería La Siete" },
-  { id: "cimbra_madera", codigo: "MAT-12", descripcion: "Cimbra de Madera (contacto)", unidad: "m2", precio: 180, marca: "Ferretería La Siete" },
-  { id: "pintura_vinilica", codigo: "MAT-13", descripcion: "Pintura Vinílica (2 manos)", unidad: "m2", precio: 28, marca: "Comex" },
-  { id: "pasta_texturizada", codigo: "MAT-14", descripcion: "Pasta Texturizada", unidad: "m2", precio: 55, marca: "Comex" },
-  { id: "piso_ceramico", codigo: "MAT-15", descripcion: "Piso Cerámico + Adhesivo", unidad: "m2", precio: 220, marca: "The Home Depot" },
-  { id: "piso_porcelanato", codigo: "MAT-16", descripcion: "Piso Porcelanato + Adhesivo", unidad: "m2", precio: 380, marca: "The Home Depot" },
-  { id: "concreto_pulido_insumo", codigo: "MAT-17", descripcion: "Insumos Concreto Pulido (sellador/endurecedor)", unidad: "m2", precio: 180, marca: "Cemex" },
-  { id: "terrazzo", codigo: "MAT-18", descripcion: "Terrazzo", unidad: "m2", precio: 450, marca: "El Surtidor" },
-  { id: "duela_laminada", codigo: "MAT-19", descripcion: "Duela Laminada", unidad: "m2", precio: 320, marca: "The Home Depot" },
-  { id: "duela_vinilica", codigo: "MAT-20", descripcion: "Duela Vinílica tipo SPC / LVT", unidad: "m2", precio: 280, marca: "The Home Depot" },
-  { id: "aluminio_2", codigo: "MAT-21", descripcion: "Perfil Aluminio 2\" + Cristal", unidad: "m2", precio: 2200, marca: "El Surtidor" },
-  { id: "aluminio_3", codigo: "MAT-22", descripcion: "Perfil Aluminio 3\" + Cristal", unidad: "m2", precio: 2600, marca: "El Surtidor" },
-  { id: "aluminio_nacional", codigo: "MAT-23", descripcion: "Perfil Aluminio Línea Nacional + Cristal", unidad: "m2", precio: 1600, marca: "El Surtidor" },
-  { id: "herreria_estructural", codigo: "MAT-24", descripcion: "Herrería Estructural + Cristal/Malla", unidad: "m2", precio: 1400, marca: "Ferretería La Siete" },
-  { id: "kit_salida_electrica", codigo: "MAT-25", descripcion: "Kit Salida Eléctrica (caja, cable, placa) hasta 3m", unidad: "pza", precio: 380, marca: "Eléctrica Santiago" },
-  { id: "ml_cable_adicional", codigo: "MAT-26", descripcion: "Cable + Canalización Adicional", unidad: "ml", precio: 45, marca: "Eléctrica Santiago" },
-  { id: "kit_salida_hidraulica", codigo: "MAT-27", descripcion: "Kit Salida Hidrosanitaria", unidad: "pza", precio: 520, marca: "Helvex" },
-  { id: "cal_trazo", codigo: "MAT-28", descripcion: "Cal p/Trazo y Nivelación", unidad: "m2", precio: 2, marca: "Ferretería La Siete" },
-  { id: "flete_pesado", codigo: "MAT-29", descripcion: "Acarreo/Retiro Escombro (mampostería)", unidad: "m2", precio: 25, marca: "Ferretería La Siete" },
-  { id: "flete_ligero", codigo: "MAT-30", descripcion: "Acarreo/Retiro Escombro (panel ligero)", unidad: "m2", precio: 15, marca: "Ferretería La Siete" },
+  { id: "tabique", codigo: "MAT-01", descripcion: "Tabique Rojo Recocido", unidad: "pza", precio: 8.5, marca: "Ferretería La Siete" },
+  { id: "mortero", codigo: "MAT-02", descripcion: "Mortero Cemento-Arena (junteo)", unidad: "m3", precio: 3100, marca: "Cemex" },
+  { id: "cemento_arena_aplanado", codigo: "MAT-03", descripcion: "Cemento-Arena p/Aplanado", unidad: "m2", precio: 55, marca: "Cemex" },
+  { id: "yeso", codigo: "MAT-04", descripcion: "Yeso p/Aplanado", unidad: "m2", precio: 48, marca: "USG" },
+  { id: "estuco", codigo: "MAT-05", descripcion: "Estuco Acabado Fino", unidad: "m2", precio: 78, marca: "Crest" },
+  { id: "azulejo_kit", codigo: "MAT-06", descripcion: "Azulejo + Adhesivo + Boquilla (Mercado CDMX)", unidad: "m2", precio: 380, marca: "El Surtidor" },
+  { id: "sellador_aparente", codigo: "MAT-07", descripcion: "Sellador Block Aparente", unidad: "m2", precio: 18, marca: "Comex" },
+  { id: "concreto_200", codigo: "MAT-08", descripcion: "Concreto f'c=200 kg/cm2 (firme)", unidad: "m2", precio: 260, marca: "Cemex" },
+  { id: "malla_electrosoldada", codigo: "MAT-09", descripcion: "Malla Electrosoldada", unidad: "m2", precio: 45, marca: "Cemex" },
+  { id: "concreto_250", codigo: "MAT-10", descripcion: "Concreto Premezclado f'c=250", unidad: "m3", precio: 2850, marca: "Cemex" },
+  { id: "acero_varilla", codigo: "MAT-11", descripcion: "Acero de Refuerzo Habilitado fy=4200", unidad: "kg", precio: 32, marca: "Ferretería La Siete" },
+  { id: "cimbra_madera", codigo: "MAT-12", descripcion: "Cimbra de Madera (contacto)", unidad: "m2", precio: 220, marca: "Ferretería La Siete" },
+  { id: "pintura_vinilica", codigo: "MAT-13", descripcion: "Pintura Vinílica (2 manos)", unidad: "m2", precio: 38, marca: "Comex" },
+  { id: "pasta_texturizada", codigo: "MAT-14", descripcion: "Pasta Texturizada", unidad: "m2", precio: 75, marca: "Comex" },
+  { id: "piso_ceramico", codigo: "MAT-15", descripcion: "Piso Cerámico + Adhesivo", unidad: "m2", precio: 380, marca: "The Home Depot" },
+  { id: "piso_porcelanato", codigo: "MAT-16", descripcion: "Piso Porcelanato + Adhesivo", unidad: "m2", precio: 520, marca: "The Home Depot" },
+  { id: "concreto_pulido_insumo", codigo: "MAT-17", descripcion: "Insumos Concreto Pulido (sellador/endurecedor)", unidad: "m2", precio: 240, marca: "Cemex" },
+  { id: "terrazzo", codigo: "MAT-18", descripcion: "Terrazzo", unidad: "m2", precio: 580, marca: "El Surtidor" },
+  { id: "duela_laminada", codigo: "MAT-19", descripcion: "Duela Laminada", unidad: "m2", precio: 420, marca: "The Home Depot" },
+  { id: "duela_vinilica", codigo: "MAT-20", descripcion: "Duela Vinílica tipo SPC / LVT", unidad: "m2", precio: 390, marca: "The Home Depot" },
+  { id: "aluminio_2", codigo: "MAT-21", descripcion: "Perfil Aluminio 2\" + Cristal", unidad: "m2", precio: 2600, marca: "El Surtidor" },
+  { id: "aluminio_3", codigo: "MAT-22", descripcion: "Perfil Aluminio 3\" + Cristal", unidad: "m2", precio: 3100, marca: "El Surtidor" },
+  { id: "aluminio_nacional", codigo: "MAT-23", descripcion: "Perfil Aluminio Línea Nacional + Cristal", unidad: "m2", precio: 1950, marca: "El Surtidor" },
+  { id: "herreria_estructural", codigo: "MAT-24", descripcion: "Herrería Estructural + Cristal/Malla", unidad: "m2", precio: 1800, marca: "Ferretería La Siete" },
+  { id: "kit_salida_electrica", codigo: "MAT-25", descripcion: "Kit Salida Eléctrica (caja, cable, placa) hasta 3m", unidad: "pza", precio: 450, marca: "Eléctrica Santiago" },
+  { id: "ml_cable_adicional", codigo: "MAT-26", descripcion: "Cable + Canalización Adicional", unidad: "ml", precio: 55, marca: "Eléctrica Santiago" },
+  { id: "kit_salida_hidraulica", codigo: "MAT-27", descripcion: "Kit Salida Hidrosanitaria", unidad: "pza", precio: 680, marca: "Helvex" },
+  { id: "cal_trazo", codigo: "MAT-28", descripcion: "Cal p/Trazo y Nivelación", unidad: "m2", precio: 4, marca: "Ferretería La Siete" },
+  { id: "flete_pesado", codigo: "MAT-29", descripcion: "Acarreo/Retiro Escombro (mampostería)", unidad: "m2", precio: 35, marca: "Ferretería La Siete" },
+  { id: "flete_ligero", codigo: "MAT-30", descripcion: "Acarreo/Retiro Escombro (panel ligero)", unidad: "m2", precio: 22, marca: "Ferretería La Siete" },
 ];
 
 const DEFAULT_MANO_OBRA = [
-  { id: "MO-01", codigo: "MO-01", descripcion: "Cuadrilla Albañilería (Oficial Albañil + Peón)", integrantes: 2, unidad: "jornada", precio: 1100 },
-  { id: "MO-02", codigo: "MO-02", descripcion: "Cuadrilla Tablaroquero (Oficial + Ayudante)", integrantes: 2, unidad: "jornada", precio: 950 },
-  { id: "MO-03", codigo: "MO-03", descripcion: "Cuadrilla Pintor (Oficial Pintor + Peón)", integrantes: 2, unidad: "jornada", precio: 850 },
-  { id: "MO-04", codigo: "MO-04", descripcion: "Cuadrilla Electricista / Plomero (Oficial + Ayudante)", integrantes: 2, unidad: "jornada", precio: 1050 },
-  { id: "MO-05", codigo: "MO-05", descripcion: "Cuadrilla Fierrero / Estructurista", integrantes: 2, unidad: "jornada", precio: 1200 },
+  { id: "MO-01", codigo: "MO-01", descripcion: "Cuadrilla Albañilería (Oficial Albañil + Peón)", integrantes: 2, unidad: "jornada", precio: 1350 },
+  { id: "MO-02", codigo: "MO-02", descripcion: "Cuadrilla Tablaroquero (Oficial + Ayudante)", integrantes: 2, unidad: "jornada", precio: 1200 },
+  { id: "MO-03", codigo: "MO-03", descripcion: "Cuadrilla Pintor (Oficial Pintor + Peón)", integrantes: 2, unidad: "jornada", precio: 1100 },
+  { id: "MO-04", codigo: "MO-04", descripcion: "Cuadrilla Electricista / Plomero (Oficial + Ayudante)", integrantes: 2, unidad: "jornada", precio: 1300 },
+  { id: "MO-05", codigo: "MO-05", descripcion: "Cuadrilla Fierrero / Estructurista", integrantes: 2, unidad: "jornada", precio: 1450 },
 ];
 
 const DEFAULT_EQUIPO = [
-  { id: "EQ-01", codigo: "EQ-01", descripcion: "Andamios", unidad: "día", precio: 150 },
-  { id: "EQ-02", codigo: "EQ-02", descripcion: "Revolvedora", unidad: "día", precio: 450 },
-  { id: "EQ-03", codigo: "EQ-03", descripcion: "Bailarina (Aplanadora de Concreto)", unidad: "día", precio: 600 },
-  { id: "EQ-04", codigo: "EQ-04", descripcion: "Herramienta Mayor (varios)", unidad: "día", precio: 300 },
+  { id: "EQ-01", codigo: "EQ-01", descripcion: "Andamios", unidad: "día", precio: 180 },
+  { id: "EQ-02", codigo: "EQ-02", descripcion: "Revolvedora", unidad: "día", precio: 550 },
+  { id: "EQ-03", codigo: "EQ-03", descripcion: "Bailarina (Aplanadora de Concreto)", unidad: "día", precio: 750 },
+  { id: "EQ-04", codigo: "EQ-04", descripcion: "Herramienta Mayor (varios)", unidad: "día", precio: 350 },
 ];
 
 const DEFAULT_PRICEBOOK = { materiales: DEFAULT_MATERIALES, manoObra: DEFAULT_MANO_OBRA, equipo: DEFAULT_EQUIPO };
@@ -124,11 +121,7 @@ function defaultPartidas() {
 }
 
 const defaultProyecto = () => ({ cliente: "", ubicacion: "", tipo: "Casa", superficie: "", nivel: "Residencial" });
-const defaultParams = () => ({ indirectos: 20, herramientaMenor: 5, imprevistos: 5, equipoSeguridad: 2 });
-
-/* -------------------------------------------------------------------------
-   2. UTILIDADES Y CONVERTIDOR DE NÚMEROS A LETRA
-   ------------------------------------------------------------------------- */
+const defaultParams = () => ({ indirectos: 20, herramientaMenor: 5, imprevistos: 5, equipoSeguridad: 2, umbralMinimoM2: 15 });
 
 const money = (n) => (isFinite(n) ? n : 0).toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 2 });
 const num = (v) => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
@@ -193,18 +186,6 @@ function numeroALetras(monto) {
     return Decenas(decenas);
   }
 
-  function Seccion(num, divisor, strSingular, strPlural) {
-    const cientos = Math.floor(num / divisor);
-    const resto = num - (cientos * divisor);
-    let letras = "";
-    if (cientos > 0) {
-      if (cientos > 1) letras = Centenas(cientos) + " " + strPlural;
-      else letras = strSingular;
-    }
-    if (resto > 0) letras += " ";
-    return { letras, resto };
-  }
-
   function Millones(num) {
     const divisor = 1000000;
     const cientos = Math.floor(num / divisor);
@@ -252,26 +233,49 @@ function findCuadrilla(priceBook, codigo) {
   return priceBook.manoObra.find((x) => x.codigo === codigo) || { precio: 0, descripcion: "—", codigo };
 }
 
-function calcUnidadMatriz(matrizKey, priceBook, overrideRendimiento) {
+// LÓGICA CON REGLA DE COBRO MÍNIMO POR JORNADA
+function calcConcepto(matrizKey, cantidad, priceBook, params, overrideRendimiento) {
   const mz = MATRICES[matrizKey];
   const matDetalle = mz.materiales.map((m) => {
     const insumo = priceBook.materiales.find((x) => x.id === m.id);
     const precio = insumo ? insumo.precio : 0;
     return { id: m.id, codigo: insumo?.codigo, descripcion: insumo?.descripcion || m.id, unidad: insumo?.unidad || "", cantidad: m.cant, precio, importe: precio * m.cant };
   });
-  const costoMateriales = matDetalle.reduce((a, b) => a + b.importe, 0);
+  const costoMaterialesM2 = matDetalle.reduce((a, b) => a + b.importe, 0);
   const cuadrilla = findCuadrilla(priceBook, mz.cuadrilla);
-  const rendimiento = overrideRendimiento || mz.rendimiento;
-  const costoMO = rendimiento ? cuadrilla.precio / rendimiento : 0;
-  return { nombre: mz.nombre, unidad: mz.unidad, matDetalle, costoMateriales, cuadrilla, rendimiento, costoMO };
-}
+  const umbral = num(params.umbralMinimoM2) || 15;
+  
+  // Regla del Word: Si la cantidad es menor al umbral (15m2), se cobra la Jornada Mínima completa
+  const esTrabajoPequeno = cantidad > 0 && cantidad < umbral;
+  let costoMOM2 = 0;
+  let rendimiento = overrideRendimiento || mz.rendimiento;
 
-function calcConcepto(matrizKey, cantidad, priceBook, params, overrideRendimiento) {
-  const base = calcUnidadMatriz(matrizKey, priceBook, overrideRendimiento);
-  const herrMenor = base.costoMO * (num(params.herramientaMenor) / 100);
-  const eqSeguridad = base.costoMO * (num(params.equipoSeguridad) / 100);
-  const puTotal = base.costoMateriales + base.costoMO + herrMenor + eqSeguridad;
-  return { ...base, matrizKey, cantidad, herrMenor, eqSeguridad, puTotal, total: puTotal * cantidad };
+  if (esTrabajoPequeno) {
+    costoMOM2 = cuadrilla.precio / cantidad; // Distribuimos el costo completo de la jornada entre los m2
+  } else {
+    costoMOM2 = rendimiento ? cuadrilla.precio / rendimiento : 0;
+  }
+
+  const herrMenor = costoMOM2 * (num(params.herramientaMenor) / 100);
+  const eqSeguridad = costoMOM2 * (num(params.equipoSeguridad) / 100);
+  const puTotal = costoMaterialesM2 + costoMOM2 + herrMenor + eqSeguridad;
+
+  return {
+    nombre: mz.nombre,
+    unidad: mz.unidad,
+    matDetalle,
+    costoMateriales: costoMaterialesM2,
+    cuadrilla,
+    rendimiento,
+    costoMO: costoMOM2,
+    matrizKey,
+    cantidad,
+    herrMenor,
+    eqSeguridad,
+    puTotal,
+    total: puTotal * cantidad,
+    esTrabajoPequeno
+  };
 }
 
 function calcPreliminares(p, priceBook, params) {
@@ -436,7 +440,6 @@ function calcularPresupuesto(partidas, priceBook, params) {
     const p = partidas[meta.key];
     const itemsRaw = p.aplica ? calcMap[meta.key](p, priceBook, params) : [];
     
-    // Aplicar factor de sobrecosto a cada item individualmente para la vista limpia del cliente
     const items = itemsRaw.map(it => {
       const puTotalConSobrecosto = it.puTotal * factorSobrecosto;
       const totalConSobrecosto = it.total * factorSobrecosto;
@@ -462,35 +465,32 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   3. PERSISTENCIA
+   PERSISTENCIA LOCAL Y PERFIL DEL USUARIO
    ------------------------------------------------------------------------- */
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v2", historial: "prisma:historial:v2" };
 
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v1", historial: "prisma:historial:v1" };
-
-async function storageGet(key) {
-  try { const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; } catch { return null; }
+function storageGet(key) {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : null;
+  } catch { return null; }
 }
-async function storageSet(key, value) {
-  try { await window.storage.set(key, JSON.stringify(value)); return true; } catch { return false; }
+
+function storageSet(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch { return false; }
 }
 
 /* -------------------------------------------------------------------------
-   4. PRIMITIVOS DE UI
+   COMPONENTES UI Y PANTALLAS
    ------------------------------------------------------------------------- */
-
 function DiamondToggle({ checked, onChange, labelOn = "Aplica", labelOff = "No Aplica" }) {
   return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className="group flex items-center gap-2.5 shrink-0 focus:outline-none"
-      aria-pressed={checked}
-    >
+    <button type="button" onClick={() => onChange(!checked)} className="group flex items-center gap-2.5 shrink-0 focus:outline-none">
       <span className="relative w-6 h-6 shrink-0">
-        <span
-          className="absolute inset-0 rotate-45 rounded-[3px] border-2 transition-colors duration-150"
-          style={{ borderColor: checked ? "var(--pr-green)" : "var(--pr-line)", background: checked ? "var(--pr-green)" : "transparent" }}
-        />
+        <span className="absolute inset-0 rotate-45 rounded-[3px] border-2 transition-colors duration-150" style={{ borderColor: checked ? "var(--pr-green)" : "var(--pr-line)", background: checked ? "var(--pr-green)" : "transparent" }} />
         {checked && (
           <svg viewBox="0 0 24 24" className="absolute inset-0 w-6 h-6 p-1.5" fill="none" stroke="#0B1210" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
             <polyline points="5,13 10,18 19,7" />
@@ -589,10 +589,6 @@ function BlueprintTexture({ className = "" }) {
   );
 }
 
-/* -------------------------------------------------------------------------
-   5. LOGO / HEADER / STEPPER
-   ------------------------------------------------------------------------- */
-
 function PrismaMark({ size = 30 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
@@ -631,19 +627,12 @@ function Header({ screen, setScreen, cliente }) {
       </div>
       <nav className="relative border-t border-white/10">
         <div className="max-w-6xl mx-auto px-2 sm:px-6 flex items-stretch overflow-x-auto">
-          {STEPS.map((s, i) => {
+          {STEPS.map((s) => {
             const active = screen === s.n;
             const done = screen > s.n;
             return (
-              <button
-                key={s.n}
-                onClick={() => setScreen(s.n)}
-                className="relative flex items-center gap-2 px-3.5 sm:px-4 py-3 shrink-0 group"
-              >
-                <span
-                  className="w-5 h-5 rotate-45 rounded-[3px] border-[1.5px] flex items-center justify-center shrink-0 transition-colors"
-                  style={{ borderColor: active || done ? "var(--pr-green)" : "rgba(255,255,255,0.25)", background: active ? "var(--pr-green)" : done ? "rgba(34,197,94,0.15)" : "transparent" }}
-                >
+              <button key={s.n} onClick={() => setScreen(s.n)} className="relative flex items-center gap-2 px-3.5 sm:px-4 py-3 shrink-0 group">
+                <span className="w-5 h-5 rotate-45 rounded-[3px] border-[1.5px] flex items-center justify-center shrink-0 transition-colors" style={{ borderColor: active || done ? "var(--pr-green)" : "rgba(255,255,255,0.25)", background: active ? "var(--pr-green)" : done ? "rgba(34,197,94,0.15)" : "transparent" }}>
                   <span className="-rotate-45 text-[10px] font-bold" style={{ color: active ? "#0B1210" : done ? "var(--pr-green)" : "rgba(255,255,255,0.5)" }}>{s.n}</span>
                 </span>
                 <span className={`text-[12px] font-bold uppercase tracking-wide whitespace-nowrap transition-colors ${active ? "text-white" : done ? "text-white/70" : "text-white/40"}`}>{s.label}</span>
@@ -656,10 +645,6 @@ function Header({ screen, setScreen, cliente }) {
     </header>
   );
 }
-
-/* -------------------------------------------------------------------------
-   6. PANTALLA 1 — PROYECTO
-   ------------------------------------------------------------------------- */
 
 function Screen1({ proyecto, setProyecto, params, setParams, onNext }) {
   const set = (k, v) => setProyecto((p) => ({ ...p, [k]: v }));
@@ -689,12 +674,7 @@ function Screen1({ proyecto, setProyecto, params, setParams, onNext }) {
         <Field label="Nivel de Acabado Objetivo" className="mt-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {NIVELES_ACABADO.map((n) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => set("nivel", n)}
-                className={`rounded-lg border px-3 py-3 text-[13px] font-bold uppercase tracking-wide transition-colors ${proyecto.nivel === n ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)] hover:border-[color:var(--pr-ink)]/30"}`}
-              >
+              <button key={n} type="button" onClick={() => set("nivel", n)} className={`rounded-lg border px-3 py-3 text-[13px] font-bold uppercase tracking-wide transition-colors ${proyecto.nivel === n ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)] hover:border-[color:var(--pr-ink)]/30"}`}>
                 {n}
               </button>
             ))}
@@ -702,23 +682,27 @@ function Screen1({ proyecto, setProyecto, params, setParams, onNext }) {
         </Field>
       </SectionCard>
 
-      <SectionCard icon={Settings2} title="Parámetros Generales del Proyecto" subtitle="Editables por cotización — moneda MXN ($)">
-        <div className="grid sm:grid-cols-4 gap-4">
+      <SectionCard icon={Settings2} title="Parámetros Generales y Reglas de Cobro" subtitle="Configuración de sobrecostos y umbral para trabajos pequeños">
+        <div className="grid sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {[
-            ["indirectos", "Indirectos y Utilidad", "%"],
-            ["herramientaMenor", "Herramienta Menor (s/ M.O.)", "%"],
-            ["imprevistos", "Imprevistos / Contingencias", "%"],
-            ["equipoSeguridad", "Equipo de Seguridad (s/ M.O.)", "%"],
-          ].map(([key, label]) => (
+            ["indirectos", "Indirectos / Utilidad", "%"],
+            ["herramientaMenor", "Herramienta Menor", "%"],
+            ["imprevistos", "Imprevistos", "%"],
+            ["equipoSeguridad", "Eq. Seguridad", "%"],
+            ["umbralMinimoM2", "Umbral Mínimo M.O.", "m²"],
+          ].map(([key, label, unit]) => (
             <Field key={key} label={label}>
               <div className="relative">
                 <NumberInput value={params[key]} onChange={(e) => setParams((p) => ({ ...p, [key]: e.target.value }))} min="0" step="0.5" className="pr-8" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[color:var(--pr-muted)]">%</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-[color:var(--pr-muted)]">{unit}</span>
               </div>
             </Field>
           ))}
         </div>
-        <p className="text-[12px] text-[color:var(--pr-muted)] mt-4">Marcas y proveedores predeterminados: {MARCAS.join(" · ")}.</p>
+        <div className="mt-3 p-3 rounded-lg border border-amber-200 bg-amber-50 text-[12px] text-amber-900 flex items-center gap-2">
+          <ShieldAlert size={16} className="shrink-0 text-amber-600" />
+          <span><b>Regla de Trabajo Pequeño / Destajo:</b> Si los m² de una partida son menores a {params.umbralMinimoM2 || 15} m², la app aplicará el cobro de 1 jornada completa de cuadrilla para cubrir costos mínimos de traslado y oportunidad.</span>
+        </div>
       </SectionCard>
 
       <div className="flex justify-end">
@@ -727,10 +711,6 @@ function Screen1({ proyecto, setProyecto, params, setParams, onNext }) {
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------
-   7. PANTALLA 2 — PARTIDAS
-   ------------------------------------------------------------------------- */
 
 function CapituloShell({ meta, aplica, onToggle, subtotal, children, defaultOpen }) {
   const [open, setOpen] = useState(!!defaultOpen);
@@ -777,29 +757,27 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-dashed border-[color:var(--pr-line)] bg-white/60 px-4 py-3 text-[12.5px] text-[color:var(--pr-muted)]">
-        Activa cada partida con el interruptor. Las partidas en <b>No Aplica</b> se ocultan y no se incluyen en el resumen ni en el PDF.
+        Activa cada partida con el interruptor. Las partidas desactivadas no se incluyen en los totales ni en la exportación.
       </div>
 
-      {/* 01 Preliminares */}
       <CapituloShell meta={CAPITULOS_META[0]} aplica={partidas.preliminares.aplica} subtotal={subtotalOf("preliminares")} onToggle={(v) => update("preliminares", (p) => ({ ...p, aplica: v }))}>
         <div className="space-y-5">
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Trazo y Nivelación (m²)">
               <NumberInput value={partidas.preliminares.trazo.m2} onChange={(e) => update("preliminares", (p) => ({ ...p, trazo: { ...p.trazo, m2: e.target.value } }))} placeholder="0" min="0" />
             </Field>
-            <Field label="Precio Unitario Rápido (opcional)" hint="Si se deja vacío, aplica la matriz base de la app.">
+            <Field label="Precio Unitario Rápido (opcional)">
               <NumberInput value={partidas.preliminares.trazo.puRapido} onChange={(e) => update("preliminares", (p) => ({ ...p, trazo: { ...p.trazo, puRapido: e.target.value } }))} placeholder="$/m²" min="0" />
             </Field>
           </div>
-
           <div>
-            <span className="block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2">Módulo de Demoliciones</span>
+            <span className="block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2">Demoliciones</span>
             <RowList addLabel="Agregar Demolición" onAdd={() => update("preliminares", (p) => ({ ...p, demoliciones: [...p.demoliciones, { id: uid(), tipo: "mamposteria", m2: "" }] }))}>
               {partidas.preliminares.demoliciones.map((d) => (
                 <div key={d.id} className="flex items-center gap-2">
                   <Select value={d.tipo} onChange={(e) => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.map((x) => x.id === d.id ? { ...x, tipo: e.target.value } : x) }))} className="flex-1">
                     <option value="mamposteria">Muro de Mampostería</option>
-                    <option value="ligero">Muro Ligero (Panel de Yeso/Durock)</option>
+                    <option value="ligero">Muro Ligero (Panel Yeso/Durock)</option>
                   </Select>
                   <NumberInput value={d.m2} onChange={(e) => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.map((x) => x.id === d.id ? { ...x, m2: e.target.value } : x) }))} placeholder="m²" className="w-28" min="0" />
                   <IconBtn tone="danger" onClick={() => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.filter((x) => x.id !== d.id) }))}><Trash2 size={15} /></IconBtn>
@@ -807,199 +785,71 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
               ))}
             </RowList>
           </div>
-
-          <div>
-            <span className="block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2">Conceptos Personalizados</span>
-            <RowList addLabel="Agregar Concepto" onAdd={() => update("preliminares", (p) => ({ ...p, conceptosExtra: [...p.conceptosExtra, { id: uid(), nombre: "", cantidad: "", unidad: "pza", pu: "" }] }))}>
-              {partidas.preliminares.conceptosExtra.map((c) => (
-                <div key={c.id} className="grid grid-cols-[1fr_70px_70px_90px_auto] gap-2 items-center">
-                  <TextInput value={c.nombre} onChange={(e) => update("preliminares", (p) => ({ ...p, conceptosExtra: p.conceptosExtra.map((x) => x.id === c.id ? { ...x, nombre: e.target.value } : x) }))} placeholder="Descripción del concepto" />
-                  <NumberInput value={c.cantidad} onChange={(e) => update("preliminares", (p) => ({ ...p, conceptosExtra: p.conceptosExtra.map((x) => x.id === c.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="Cant." min="0" />
-                  <TextInput value={c.unidad} onChange={(e) => update("preliminares", (p) => ({ ...p, conceptosExtra: p.conceptosExtra.map((x) => x.id === c.id ? { ...x, unidad: e.target.value } : x) }))} placeholder="Und." />
-                  <NumberInput value={c.pu} onChange={(e) => update("preliminares", (p) => ({ ...p, conceptosExtra: p.conceptosExtra.map((x) => x.id === c.id ? { ...x, pu: e.target.value } : x) }))} placeholder="P.U. $" min="0" />
-                  <IconBtn tone="danger" onClick={() => update("preliminares", (p) => ({ ...p, conceptosExtra: p.conceptosExtra.filter((x) => x.id !== c.id) }))}><Trash2 size={15} /></IconBtn>
-                </div>
-              ))}
-            </RowList>
-          </div>
         </div>
       </CapituloShell>
 
-      {/* 02 Albañilería */}
       <CapituloShell meta={CAPITULOS_META[1]} aplica={partidas.albanileria.aplica} subtotal={subtotalOf("albanileria")} onToggle={(v) => update("albanileria", (p) => ({ ...p, aplica: v }))}>
         <div className="space-y-5">
-          <Field label="Muros de Mampostería — Tabique Rojo Recocido (m²)" hint="Matriz base conservadora estandarizada para blindar el margen financiero paramétrico.">
+          <Field label="Muros de Tabique Rojo Recocido (m²)">
             <NumberInput value={partidas.albanileria.muros.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, m2: e.target.value } }))} placeholder="0" min="0" />
           </Field>
-
           <div className="rounded-lg border border-[color:var(--pr-line)] p-4 space-y-3.5">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)]">Configuración de Caras</span>
-              <button
-                type="button"
-                onClick={() => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, mismoAcabado: !p.muros.mismoAcabado, caraB: p.muros.caraA } }))}
-                className={`text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border transition-colors ${partidas.albanileria.muros.mismoAcabado ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}
-              >
-                Ambas Caras con el Mismo Acabado
+              <button type="button" onClick={() => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, mismoAcabado: !p.muros.mismoAcabado, caraB: p.muros.caraA } }))} className={`text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border transition-colors ${partidas.albanileria.muros.mismoAcabado ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}>
+                Ambas Caras con Mismo Acabado
               </button>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Cara A">
                 <Select value={partidas.albanileria.muros.caraA} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraA: e.target.value, caraB: p.muros.mismoAcabado ? e.target.value : p.muros.caraB } }))}>
-                  {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t === "Enjarre" ? "Enjarre o Aplanado Cemento-Arena" : t}</option>)}
+                  {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
                 </Select>
               </Field>
               <Field label="Cara B">
-                <Select disabled={partidas.albanileria.muros.mismoAcabado} value={partidas.albanileria.muros.mismoAcabado ? partidas.albanileria.muros.caraA : partidas.albanileria.muros.caraB} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraB: e.target.value } }))} className={partidas.albanileria.muros.mismoAcabado ? "opacity-60" : ""}>
-                  {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t === "Enjarre" ? "Enjarre o Aplanado Cemento-Arena" : t}</option>)}
+                <Select disabled={partidas.albanileria.muros.mismoAcabado} value={partidas.albanileria.muros.caraB} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraB: e.target.value } }))}>
+                  {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
                 </Select>
               </Field>
             </div>
           </div>
-
-          <Field label="Firmes Interiores — Concreto f'c=200 kg/cm² (m²)">
+          <Field label="Firmes de Concreto Interior f'c=200 (m²)">
             <NumberInput value={partidas.albanileria.firmes.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, firmes: { m2: e.target.value } }))} placeholder="0" min="0" />
           </Field>
         </div>
       </CapituloShell>
 
-      {/* 03 Estructuras */}
-      <CapituloShell meta={CAPITULOS_META[2]} aplica={partidas.estructuras.aplica} subtotal={subtotalOf("estructuras")} onToggle={(v) => update("estructuras", (p) => ({ ...p, aplica: v }))}>
-        <RowList addLabel="Agregar Elemento Estructural" onAdd={() => update("estructuras", (p) => ({ ...p, elementos: [...p.elementos, { id: uid(), tipo: "Columna", ancho: "", peralte: "", longitud: "" }] }))}>
-          {partidas.estructuras.elementos.map((el) => (
-            <div key={el.id} className="rounded-lg border border-[color:var(--pr-line)] p-3.5">
-              <div className="grid sm:grid-cols-[1.3fr_1fr_1fr_1fr_auto] gap-2.5 items-end">
-                <Field label="Elemento">
-                  <Select value={el.tipo} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, tipo: e.target.value } : x) }))}>
-                    {TIPOS_ESTRUCTURA.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </Select>
-                </Field>
-                <Field label="Ancho (cm)"><NumberInput value={el.ancho} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, ancho: e.target.value } : x) }))} min="0" /></Field>
-                <Field label="Peralte (cm)"><NumberInput value={el.peralte} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, peralte: e.target.value } : x) }))} min="0" /></Field>
-                <Field label="Altura / Long. (m)"><NumberInput value={el.longitud} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, longitud: e.target.value } : x) }))} min="0" /></Field>
-                <IconBtn tone="danger" onClick={() => update("estructuras", (p) => ({ ...p, elementos: p.elementos.filter((x) => x.id !== el.id) }))}><Trash2 size={15} /></IconBtn>
-              </div>
-            </div>
-          ))}
-        </RowList>
-        <p className="text-[11px] text-[color:var(--pr-muted)] mt-3">Cálculo de armado mínimo automático con f'y=4200 kg/cm² (estribos/anillos incluidos en cuantía), concreto y cimbra. Ver desglose en Pantalla 3 — Módulo APU.</p>
-      </CapituloShell>
-
-      {/* 04 Acabados */}
-      <CapituloShell meta={CAPITULOS_META[3]} aplica={partidas.acabados.aplica} subtotal={subtotalOf("acabados")} onToggle={(v) => update("acabados", (p) => ({ ...p, aplica: v }))}>
-        <div className="space-y-4">
-          <Field label="Tipo de Aplicación">
-            <div className="grid grid-cols-2 gap-2.5">
-              {[["vinilica", "Pintura Vinílica (2 manos)"], ["pasta", "Pasta Texturizada"]].map(([v, l]) => (
-                <button key={v} type="button" onClick={() => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, tipo: v } }))} className={`rounded-lg border px-3 py-2.5 text-[12.5px] font-bold text-left transition-colors ${partidas.acabados.pintura.tipo === v ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}>{l}</button>
-              ))}
-            </div>
-          </Field>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Muros (m²)"><NumberInput value={partidas.acabados.pintura.m2Muros} onChange={(e) => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, m2Muros: e.target.value } }))} placeholder="0" min="0" /></Field>
-            <Field label="Plafones (m²)"><NumberInput value={partidas.acabados.pintura.m2Plafones} onChange={(e) => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, m2Plafones: e.target.value } }))} placeholder="0" min="0" /></Field>
-          </div>
-        </div>
-      </CapituloShell>
-
-      {/* 05 Pisos */}
       <CapituloShell meta={CAPITULOS_META[4]} aplica={partidas.pisos.aplica} subtotal={subtotalOf("pisos")} onToggle={(v) => update("pisos", (p) => ({ ...p, aplica: v }))}>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Selector de Tipo">
+          <Field label="Tipo de Recubrimiento">
             <Select value={partidas.pisos.tipo} onChange={(e) => update("pisos", (p) => ({ ...p, tipo: e.target.value }))}>
               {TIPOS_PISO.map((t) => <option key={t} value={t}>{t}</option>)}
             </Select>
           </Field>
-          <Field label="Superficie (m²)"><NumberInput value={partidas.pisos.m2} onChange={(e) => update("pisos", (p) => ({ ...p, m2: e.target.value }))} placeholder="0" min="0" /></Field>
-        </div>
-        <p className="text-[11px] text-[color:var(--pr-muted)] mt-3">Incluye automáticamente matriz de adhesivo / bajo-piso y mano de obra por m².</p>
-      </CapituloShell>
-
-      {/* 06 Cancelería */}
-      <CapituloShell meta={CAPITULOS_META[5]} aplica={partidas.canceleria.aplica} subtotal={subtotalOf("canceleria")} onToggle={(v) => update("canceleria", (p) => ({ ...p, aplica: v }))}>
-        <RowList addLabel="Agregar Vano (Puerta / Ventana)" onAdd={() => update("canceleria", (p) => ({ ...p, elementos: [...p.elementos, { id: uid(), material: 'Aluminio (2")', elemento: "Ventana", apertura: "Corrediza", ancho: "", alto: "", modulaciones: 1 }] }))}>
-          {partidas.canceleria.elementos.map((el) => (
-            <div key={el.id} className="rounded-lg border border-[color:var(--pr-line)] p-3.5 space-y-2.5">
-              <div className="grid sm:grid-cols-3 gap-2.5">
-                <Field label="Material">
-                  <Select value={el.material} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, material: e.target.value } : x) }))}>
-                    {Object.keys(MATERIALES_CANCELERIA).map((m) => <option key={m} value={m}>{m}</option>)}
-                    <option value="Herrería Estructural">Herrería Estructural</option>
-                  </Select>
-                </Field>
-                <Field label="Elemento">
-                  <Select value={el.elemento} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, elemento: e.target.value } : x) }))}>
-                    <option value="Puerta">Puerta</option><option value="Ventana">Ventana</option>
-                  </Select>
-                </Field>
-                <Field label="Apertura">
-                  <Select value={el.apertura} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, apertura: e.target.value } : x) }))}>
-                    <option>Fijo</option><option>Corrediza</option><option>Abatible</option>
-                  </Select>
-                </Field>
-              </div>
-              <div className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-2.5 items-end">
-                <Field label="Ancho (cm)"><NumberInput value={el.ancho} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, ancho: e.target.value } : x) }))} min="0" /></Field>
-                <Field label="Alto (cm)"><NumberInput value={el.alto} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, alto: e.target.value } : x) }))} min="0" /></Field>
-                <Field label="Modulaciones"><NumberInput value={el.modulaciones} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, modulaciones: e.target.value } : x) }))} min="1" /></Field>
-                <IconBtn tone="danger" onClick={() => update("canceleria", (p) => ({ ...p, elementos: p.elementos.filter((x) => x.id !== el.id) }))}><Trash2 size={15} /></IconBtn>
-              </div>
-            </div>
-          ))}
-        </RowList>
-      </CapituloShell>
-
-      {/* 07 Instalaciones */}
-      <CapituloShell meta={CAPITULOS_META[6]} aplica={partidas.instalaciones.aplica} subtotal={subtotalOf("instalaciones")} onToggle={(v) => update("instalaciones", (p) => ({ ...p, aplica: v }))}>
-        <div className="space-y-5">
-          <div>
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2"><Zap size={13} /> Eléctrica — Cotización por Salida</span>
-            <p className="text-[11px] text-[color:var(--pr-muted)] mb-2.5">Regla de 3 Metros: la matriz base incluye hasta 3.00 m de canalización y cableado desde el centro de carga.</p>
-            <RowList addLabel="Agregar Salida Eléctrica" onAdd={() => update("instalaciones", (p) => ({ ...p, electrica: [...p.electrica, { id: uid(), tipo: "Contacto", cantidad: "", metrosAdicionales: "" }] }))}>
-              {partidas.instalaciones.electrica.map((s) => (
-                <div key={s.id} className="grid grid-cols-[1.2fr_80px_110px_auto] gap-2 items-center">
-                  <Select value={s.tipo} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, tipo: e.target.value } : x) }))}>
-                    {TIPOS_SALIDA_ELECTRICA.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </Select>
-                  <NumberInput value={s.cantidad} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="Cant." min="0" />
-                  <NumberInput value={s.metrosAdicionales} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, metrosAdicionales: e.target.value } : x) }))} placeholder="+ ml c/u" min="0" />
-                  <IconBtn tone="danger" onClick={() => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.filter((x) => x.id !== s.id) }))}><Trash2 size={15} /></IconBtn>
-                </div>
-              ))}
-            </RowList>
-          </div>
-          <div>
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2"><Droplets size={13} /> Hidráulica y Sanitaria — Cotización por Salida</span>
-            <RowList addLabel="Agregar Salida Hidrosanitaria" onAdd={() => update("instalaciones", (p) => ({ ...p, hidraulica: [...p.hidraulica, { id: uid(), tipo: "Lavabo", cantidad: "" }] }))}>
-              {partidas.instalaciones.hidraulica.map((s) => (
-                <div key={s.id} className="grid grid-cols-[1.2fr_80px_auto] gap-2 items-center">
-                  <Select value={s.tipo} onChange={(e) => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.map((x) => x.id === s.id ? { ...x, tipo: e.target.value } : x) }))}>
-                    {TIPOS_SALIDA_HIDRAULICA.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </Select>
-                  <NumberInput value={s.cantidad} onChange={(e) => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.map((x) => x.id === s.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="Cant." min="0" />
-                  <IconBtn tone="danger" onClick={() => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.filter((x) => x.id !== s.id) }))}><Trash2 size={15} /></IconBtn>
-                </div>
-              ))}
-            </RowList>
-          </div>
+          <Field label="Superficie (m²)">
+            <NumberInput value={partidas.pisos.m2} onChange={(e) => update("pisos", (p) => ({ ...p, m2: e.target.value }))} placeholder="0" min="0" />
+          </Field>
         </div>
       </CapituloShell>
     </div>
   );
 }
 
-/* -------------------------------------------------------------------------
-   8. PANTALLA 3 — MÓDULO APU
-   ------------------------------------------------------------------------- */
-
 function APUItemCard({ item }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-lg border border-[color:var(--pr-line)] overflow-hidden">
+    <div className="rounded-lg border border-[color:var(--pr-line)] overflow-hidden bg-white">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-black/[0.02] transition-colors">
         <div className="min-w-0">
-          <div className="text-[13.5px] font-semibold text-[color:var(--pr-ink)] truncate">{item.concepto}</div>
-          <div className="text-[11.5px] text-[color:var(--pr-muted)] tabular-nums">{item.cantidad} {item.unidad} × {money(item.puTotal)} {item.manual && "(precio manual)"}</div>
+          <div className="flex items-center gap-2">
+            <span className="text-[13.5px] font-semibold text-[color:var(--pr-ink)] truncate">{item.concepto}</span>
+            {item.esTrabajoPequeno && (
+              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                Jornada Mínima Aplicada
+              </span>
+            )}
+          </div>
+          <div className="text-[11.5px] text-[color:var(--pr-muted)] tabular-nums">{item.cantidad} {item.unidad} × {money(item.puTotal)}</div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <span className="font-display text-[14px] tabular-nums text-[color:var(--pr-ink)]">{money(item.total)}</span>
@@ -1007,41 +857,25 @@ function APUItemCard({ item }) {
         </div>
       </button>
       {open && (
-        <div className="px-4 pb-4 pt-1 border-t border-[color:var(--pr-line)] bg-[color:var(--pr-canvas)]/40">
-          {item.manual ? (
-            <p className="text-[12px] text-[color:var(--pr-muted)] pt-3">Concepto con precio unitario capturado manualmente — no usa matriz de la app.</p>
-          ) : (
-            <div className="pt-3 space-y-3 text-[12.5px]">
-              {item.matDetalle?.length > 0 && (
-                <div>
-                  <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] mb-1.5">Insumos / Materiales</div>
-                  <div className="space-y-1">
-                    {item.matDetalle.map((m, i) => (
-                      <div key={i} className="flex items-center justify-between gap-2 tabular-nums">
-                        <span className="flex items-center gap-1.5 text-[color:var(--pr-ink)] truncate">
-                          {m.codigo && <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-black/5 text-[color:var(--pr-muted)] shrink-0">{m.codigo}</span>}
-                          <span className="truncate">{m.descripcion}</span>
-                        </span>
-                        <span className="text-[color:var(--pr-muted)] shrink-0">{m.cantidad} {m.unidad} × {money(m.precio)} = <b className="text-[color:var(--pr-ink)]">{money(m.importe)}</b></span>
-                      </div>
-                    ))}
-                  </div>
+        <div className="px-4 pb-4 pt-1 border-t border-[color:var(--pr-line)] bg-[color:var(--pr-canvas)]/40 text-[12.5px] space-y-2">
+          {item.matDetalle?.length > 0 && (
+            <div>
+              <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Insumos</div>
+              {item.matDetalle.map((m, i) => (
+                <div key={i} className="flex justify-between text-[12px]">
+                  <span>{m.descripcion}</span>
+                  <b>{money(m.importe)}</b>
                 </div>
-              )}
-              <div>
-                <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] mb-1.5">Mano de Obra</div>
-                <div className="flex items-center justify-between tabular-nums">
-                  <span className="flex items-center gap-1.5 truncate"><span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-black/5 text-[color:var(--pr-muted)] shrink-0">{item.cuadrilla?.codigo}</span><span className="truncate">{item.cuadrilla?.descripcion}</span></span>
-                  <span className="text-[color:var(--pr-muted)] shrink-0">Rend. {item.rendimiento} / jornada → <b className="text-[color:var(--pr-ink)]">{money(item.costoMO)}</b></span>
-                </div>
-              </div>
-              <div>
-                <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] mb-1.5">Cargos Adicionales</div>
-                <div className="flex items-center justify-between tabular-nums"><span>Herramienta Menor</span><b className="text-[color:var(--pr-ink)]">{money(item.herrMenor)}</b></div>
-                <div className="flex items-center justify-between tabular-nums"><span>Equipo de Seguridad</span><b className="text-[color:var(--pr-ink)]">{money(item.eqSeguridad)}</b></div>
-              </div>
+              ))}
             </div>
           )}
+          <div>
+            <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Mano de Obra</div>
+            <div className="flex justify-between text-[12px]">
+              <span>{item.cuadrilla?.descripcion} {item.esTrabajoPequeno && "(Mínimo Cuadrilla)"}</span>
+              <b>{money(item.costoMO)} / m²</b>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1052,23 +886,10 @@ function Screen3({ partidas, priceBook, params }) {
   const presupuesto = useMemo(() => calcularPresupuesto(partidas, priceBook, params), [partidas, priceBook, params]);
   const activos = presupuesto.capitulos.filter((c) => c.aplica && c.items.length > 0);
 
-  if (activos.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-[color:var(--pr-line)] bg-white p-10 text-center">
-        <Calculator size={28} className="mx-auto text-[color:var(--pr-muted)] mb-3" />
-        <p className="text-[14px] font-semibold text-[color:var(--pr-ink)]">Aún no hay conceptos capturados</p>
-        <p className="text-[13px] text-[color:var(--pr-muted)] mt-1">Activa partidas y captura cantidades en la Pantalla 2 para ver aquí el desglose de precios unitarios.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-5">
-      <div className="rounded-xl border border-dashed border-[color:var(--pr-line)] bg-white/60 px-4 py-3 text-[12.5px] text-[color:var(--pr-muted)]">
-        Desglose dinámico de cada concepto: insumos, rendimiento de cuadrilla y cargos adicionales. Ajusta precios y rendimientos en la Pantalla 4 — Tarifario.
-      </div>
+    <div className="space-y-4">
       {activos.map((cap) => (
-        <SectionCard key={cap.key} icon={cap.icon} title={cap.nombre} subtitle={`${cap.items.length} concepto${cap.items.length > 1 ? "s" : ""}`} right={<span className="font-display text-[15px] tabular-nums text-[color:var(--pr-ink)]">{money(cap.subtotal)}</span>}>
+        <SectionCard key={cap.key} icon={cap.icon} title={cap.nombre} right={<span className="font-display text-[15px] tabular-nums">{money(cap.subtotal)}</span>}>
           <div className="space-y-2">{cap.items.map((it) => <APUItemCard key={it.id} item={it} />)}</div>
         </SectionCard>
       ))}
@@ -1076,33 +897,17 @@ function Screen3({ partidas, priceBook, params }) {
   );
 }
 
-/* -------------------------------------------------------------------------
-   9. PANTALLA 4 — TARIFARIO
-   ------------------------------------------------------------------------- */
-
-const TAB_CONFIG = {
-  materiales: { label: "Materiales", cols: [["codigo", "Código", 90], ["descripcion", "Descripción", null], ["unidad", "Unidad", 90], ["marca", "Marca", 150], ["precio", "Precio", 120]] },
-  manoObra: { label: "Mano de Obra (Cuadrillas)", cols: [["codigo", "Código", 90], ["descripcion", "Cuadrilla", null], ["integrantes", "Integrantes", 100], ["unidad", "Unidad", 90], ["precio", "Precio Jornada", 130]] },
-  equipo: { label: "Equipo y Maquinaria", cols: [["codigo", "Código", 90], ["descripcion", "Descripción", null], ["unidad", "Unidad", 90], ["precio", "Precio", 120]] },
-};
-
-function Screen4({ priceBook, setPriceBook, saving }) {
+// PANTALLA 4 CON BOTÓN PARA GUARDAR COMO TARIFARIO PREDETERMINADO EN PERFIL
+function Screen4({ priceBook, setPriceBook, onSaveAsDefault }) {
   const [tab, setTab] = useState("materiales");
-  const cfg = TAB_CONFIG[tab];
-  const rows = priceBook[tab];
+  const cfg = {
+    materiales: [["codigo", "Código", 90], ["descripcion", "Descripción", null], ["unidad", "Unidad", 80], ["precio", "Precio CDMX ($)", 130]],
+    manoObra: [["codigo", "Código", 90], ["descripcion", "Cuadrilla", null], ["unidad", "Unidad", 80], ["precio", "Precio Jornada ($)", 130]],
+    equipo: [["codigo", "Código", 90], ["descripcion", "Descripción", null], ["unidad", "Unidad", 80], ["precio", "Precio ($)", 130]],
+  }[tab];
 
   const updateRow = (id, field, value) => {
-    setPriceBook((pb) => ({ ...pb, [tab]: pb[tab].map((r) => (r.id === id ? { ...r, [field]: field === "precio" || field === "integrantes" ? value : value } : r)) }));
-  };
-  const removeRow = (id) => setPriceBook((pb) => ({ ...pb, [tab]: pb[tab].filter((r) => r.id !== id) }));
-  const addRow = () => {
-    const prefix = tab === "materiales" ? "MAT" : tab === "manoObra" ? "MO" : "EQ";
-    const n = rows.length + 1;
-    const codigo = `${prefix}-${String(n).padStart(2, "0")}-N`;
-    const base = { id: uid(), codigo, descripcion: "", unidad: tab === "manoObra" ? "jornada" : "m2", precio: 0 };
-    if (tab === "manoObra") base.integrantes = 2;
-    if (tab === "materiales") base.marca = "";
-    setPriceBook((pb) => ({ ...pb, [tab]: [...pb[tab], base] }));
+    setPriceBook((pb) => ({ ...pb, [tab]: pb[tab].map((r) => (r.id === id ? { ...r, [field]: value } : r)) }));
   };
 
   return (
@@ -1110,258 +915,79 @@ function Screen4({ priceBook, setPriceBook, saving }) {
       <SectionCard
         icon={Database}
         title="Tarifario y Base de Datos Dinámica"
-        subtitle="Registros ilimitados — sincronizados de inmediato con el Módulo APU"
-        right={saving && <span className="flex items-center gap-1.5 text-[11px] text-[color:var(--pr-muted)]"><Loader2 size={13} className="animate-spin" /> Guardando…</span>}
+        subtitle="Modifica y guarda tus precios predeterminados para todos tus futuros proyectos"
+        right={
+          <Btn variant="solid" onClick={onSaveAsDefault}>
+            <Save size={14} /> Guardar Tarifario Predeterminado
+          </Btn>
+        }
       >
-        <div className="flex gap-2 mb-4 border-b border-[color:var(--pr-line)] -mt-1 pb-3 overflow-x-auto">
-          {Object.entries(TAB_CONFIG).map(([k, c]) => (
-            <button key={k} onClick={() => setTab(k)} className={`px-3.5 py-2 rounded-lg text-[12.5px] font-bold uppercase tracking-wide whitespace-nowrap transition-colors ${tab === k ? "bg-[color:var(--pr-ink)] text-white" : "text-[color:var(--pr-muted)] hover:bg-black/5"}`}>
-              {c.label} <span className="opacity-60">({priceBook[k].length})</span>
+        <div className="flex gap-2 mb-4 border-b pb-3">
+          {["materiales", "manoObra", "equipo"].map((k) => (
+            <button key={k} onClick={() => setTab(k)} className={`px-3 py-1.5 rounded-lg text-[12px] font-bold uppercase ${tab === k ? "bg-black text-white" : "text-gray-500"}`}>
+              {k} ({priceBook[k].length})
             </button>
           ))}
         </div>
-
-        <div className="overflow-x-auto -mx-1">
-          <table className="w-full text-[13px] border-collapse min-w-[640px]">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
             <thead>
-              <tr className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)]">
-                {cfg.cols.map(([key, label, w]) => <th key={key} style={{ width: w || undefined }} className="text-left px-2 py-2 border-b border-[color:var(--pr-line)]">{label}</th>)}
-                <th className="w-10 border-b border-[color:var(--pr-line)]"></th>
+              <tr className="text-left text-gray-500 border-b">
+                {cfg.map(([k, l]) => <th key={k} className="pb-2">{l}</th>)}
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-b border-[color:var(--pr-line)]/60 hover:bg-black/[0.015]">
-                  {cfg.cols.map(([key]) => (
-                    <td key={key} className="px-2 py-1.5">
-                      {key === "precio" ? (
-                        <NumberInput value={r.precio} onChange={(e) => updateRow(r.id, "precio", parseFloat(e.target.value) || 0)} min="0" step="0.01" className="py-1.5 text-right tabular-nums" />
-                      ) : key === "marca" ? (
-                        <Select value={r.marca || ""} onChange={(e) => updateRow(r.id, "marca", e.target.value)} className="py-1.5">
-                          <option value="">—</option>
-                          {MARCAS.map((m) => <option key={m} value={m}>{m}</option>)}
-                        </Select>
-                      ) : key === "integrantes" ? (
-                        <NumberInput value={r.integrantes} onChange={(e) => updateRow(r.id, "integrantes", parseFloat(e.target.value) || 0)} min="1" className="py-1.5" />
+              {priceBook[tab].map((r) => (
+                <tr key={r.id} className="border-b">
+                  {cfg.map(([k]) => (
+                    <td key={k} className="py-2 pr-2">
+                      {k === "precio" ? (
+                        <NumberInput value={r.precio} onChange={(e) => updateRow(r.id, "precio", parseFloat(e.target.value) || 0)} />
                       ) : (
-                        <TextInput value={r[key] || ""} onChange={(e) => updateRow(r.id, key, e.target.value)} className="py-1.5 font-mono text-[12px]" disabled={key === "codigo"} />
+                        <TextInput value={r[k] || ""} onChange={(e) => updateRow(r.id, k, e.target.value)} disabled={k === "codigo"} />
                       )}
                     </td>
                   ))}
-                  <td className="px-1"><IconBtn tone="danger" onClick={() => removeRow(r.id)}><Trash2 size={14} /></IconBtn></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        <button onClick={addRow} className="mt-3 w-full flex items-center justify-center gap-2 rounded-lg border border-dashed border-[color:var(--pr-line)] py-2.5 text-[12.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] hover:border-[color:var(--pr-green)] hover:text-[color:var(--pr-green-ink)] transition-colors">
-          <Plus size={14} /> Agregar Nuevo Insumo / Cuadrilla
-        </button>
       </SectionCard>
     </div>
   );
 }
 
-/* -------------------------------------------------------------------------
-   10. PANTALLA 5 — RESUMEN Y REPORTE IMPRESO / PDF
-   ------------------------------------------------------------------------- */
-
-function LineaResumen({ label, value, bold, accent, big }) {
+function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHistorial, onDeleteHistorial }) {
   return (
-    <div className={`flex items-center justify-between gap-4 ${big ? "py-3" : "py-2"}`}>
-      <span className={`${bold ? "font-bold" : ""} ${big ? "font-display text-[15px] tracking-wide" : "text-[13.5px]"}`} style={{ color: accent ? "var(--pr-green-ink)" : "var(--pr-ink)" }}>{label}</span>
-      <span className={`tabular-nums ${bold ? "font-bold" : ""} ${big ? "font-display text-[22px]" : "text-[13.5px]"}`} style={{ color: accent ? "var(--pr-green-ink)" : "var(--pr-ink)" }}>{value}</span>
-    </div>
-  );
-}
-
-/* REPORTE LIMPIO PARA EL CLIENTE (PDF) SIN DESGLOSE DE INDIRECTOS/UTILIDAD */
-function PrintReport({ proyecto, presupuesto }) {
-  const activos = presupuesto.capitulos.filter((c) => c.aplica && c.items.length > 0);
-  const fecha = new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
-  return (
-    <div className="print-only hidden">
-      <div className="p-10 text-[#14181B] text-[12px]">
-        <div className="flex items-center justify-between border-b-2 border-[#14181B] pb-4 mb-6">
-          <div className="flex items-center gap-3">
-            <PrismaMark size={36} />
-            <div>
-              <div className="font-display text-[20px] tracking-wide">PRISMA ARQUITECTURA</div>
-              <div className="text-[11px] text-[#5B6560]">Presupuesto Paramétrico de Obra</div>
+    <div className="space-y-4">
+      <SectionCard icon={FileText} title="Resumen Ejecutivo y Cotización Final">
+        <div className="space-y-2">
+          {presupuesto.capitulos.filter(c => c.aplica).map((c) => (
+            <div key={c.key} className="flex justify-between border-b py-2 text-[14px]">
+              <span>{c.nombre}</span>
+              <b>{money(c.subtotalCliente)}</b>
             </div>
+          ))}
+          <div className="flex justify-between text-[18px] font-bold pt-4 text-[color:var(--pr-green-ink)]">
+            <span>TOTAL DEL PROYECTO:</span>
+            <span>{money(presupuesto.total)}</span>
           </div>
-          <div className="text-right text-[11px] text-[#5B6560]">
-            <div>Fecha: {fecha}</div>
-            <div>Moneda: MXN ($)</div>
-          </div>
+          <p className="text-[12px] text-gray-500 mt-2">Importe con letra: {numeroALetras(presupuesto.total)}</p>
         </div>
+      </SectionCard>
 
-        <div className="grid grid-cols-2 gap-4 mb-6 text-[12px] bg-black/[0.02] p-4 rounded border border-black/10">
-          <div><span className="font-bold">Cliente:</span> {proyecto.cliente || "—"}</div>
-          <div><span className="font-bold">Ubicación:</span> {proyecto.ubicacion || "—"}</div>
-          <div><span className="font-bold">Tipo de Inmueble:</span> {proyecto.tipo}</div>
-          <div><span className="font-bold">Superficie:</span> {proyecto.superficie || 0} m²</div>
-          <div><span className="font-bold">Nivel de Acabado:</span> {proyecto.nivel}</div>
-        </div>
-
-        {activos.map((cap) => (
-          <div key={cap.key} className="mb-5 break-inside-avoid">
-            <div className="font-display text-[13px] bg-black/5 px-2.5 py-1.5 mb-1.5 rounded-sm">{cap.nombre}</div>
-            <table className="w-full text-[11px] border-collapse">
-              <thead>
-                <tr className="text-left text-[#5B6560] border-b border-black/20">
-                  <th className="py-1.5">Concepto</th>
-                  <th className="py-1.5 w-20">Cant.</th>
-                  <th className="py-1.5 w-16">Und.</th>
-                  <th className="py-1.5 w-24 text-right">P.U.</th>
-                  <th className="py-1.5 w-28 text-right">Importe</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cap.items.map((it) => (
-                  <tr key={it.id} className="border-t border-black/10">
-                    <td className="py-1.5 pr-2">{it.concepto}</td>
-                    <td className="py-1.5 tabular-nums">{it.cantidad}</td>
-                    <td className="py-1.5">{it.unidad}</td>
-                    <td className="py-1.5 text-right tabular-nums">{money(it.puTotalCliente)}</td>
-                    <td className="py-1.5 text-right tabular-nums font-bold">{money(it.totalCliente)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="text-right text-[11.5px] font-bold mt-1.5">Subtotal Capítulo: {money(cap.subtotalCliente)}</div>
-          </div>
-        ))}
-
-        {/* TOTAL DIRECTO SÓLO CON COSTO FINAL INTEGRADO */}
-        <div className="mt-6 border-t-2 border-[#14181B] pt-4 ml-auto w-80 text-[12px]">
-          <div className="flex justify-between py-1 font-bold text-[15px]">
-            <span>TOTAL DEL PROYECTO</span>
-            <span className="tabular-nums">{money(presupuesto.total)}</span>
-          </div>
-          {num(proyecto.superficie) > 0 && (
-            <div className="flex justify-between text-[11px] text-[#5B6560] pt-0.5">
-              <span>Costo por m²</span>
-              <span className="tabular-nums">{money(presupuesto.total / num(proyecto.superficie))} / m²</span>
-            </div>
-          )}
-        </div>
-
-        {/* IMPORTE EN LETRA EN FORMATO OFICIAL */}
-        <div className="mt-4 p-3 bg-black/[0.03] border border-black/15 rounded text-[11px] font-bold">
-          <span className="text-[#5B6560] font-normal uppercase">Importe con letra: </span>
-          {numeroALetras(presupuesto.total)}
-        </div>
-
-        {/* NOTAS Y LEYENDA DEL 16% DE IVA */}
-        <div className="mt-8 pt-4 border-t border-black/20 text-[10.5px] text-[#444] space-y-1.5 leading-relaxed">
-          <p className="font-bold text-[#14181B] uppercase tracking-wider mb-1">Notas y Condiciones Comerciales:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Los precios presentados corresponden a costos parametrizados expresados en Moneda Nacional (MXN).</li>
-            <li className="font-bold text-[#14181B]">
-              En caso de requerir comprobante fiscal (factura), los precios presentados son MÁS EL 16% DE I.V.A.
-            </li>
-            <li>Esta propuesta parametrizada tiene una vigencia de 15 días naturales a partir de su fecha de emisión.</li>
-            <li>Los alcances finales y especificaciones de materiales se ratificarán al momento de formalizar el contrato ejecutivo de obra.</li>
-          </ul>
-        </div>
-
-        <div className="mt-12 pt-3 border-t border-black/10 text-[9.5px] text-[#5B6560] flex justify-between items-center">
-          <span>Prisma Arquitectura · Cotizador Paramétrico</span>
-          <span>contacto@prismaarquitectura.mx</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHistorial, onDeleteHistorial, savingHistorial }) {
-  const porM2 = num(proyecto.superficie) > 0 ? presupuesto.total / num(proyecto.superficie) : 0;
-  const activos = presupuesto.capitulos.filter((c) => c.aplica && c.items.length > 0);
-
-  const resumenTexto = () => {
-    let t = `*Presupuesto Paramétrico — Prisma Arquitectura*\nCliente: ${proyecto.cliente || "—"}\nUbicación: ${proyecto.ubicacion || "—"}\nSuperficie: ${proyecto.superficie || 0} m²\n\n`;
-    activos.forEach((c) => { t += `${c.nombre}: ${money(c.subtotalCliente)}\n`; });
-    t += `\n*TOTAL DEL PROYECTO: ${money(presupuesto.total)}*\nImporte con letra: ${numeroALetras(presupuesto.total)}\n\n_En caso de requerir factura, los precios son más el 16% de I.V.A._`;
-    return t;
-  };
-
-  const handleWhatsApp = () => window.open(`https://wa.me/?text=${encodeURIComponent(resumenTexto())}`, "_blank");
-  const handleEmail = () => window.open(`mailto:?subject=${encodeURIComponent(`Presupuesto Paramétrico — ${proyecto.cliente || "Proyecto"}`)}&body=${encodeURIComponent(resumenTexto())}`, "_blank");
-  const handlePrint = () => window.print();
-
-  return (
-    <div className="space-y-5">
-      <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 space-y-4">
-          <SectionCard icon={FileText} title="Resumen Paramétrico por Capítulo">
-            {activos.length === 0 ? (
-              <p className="text-[13px] text-[color:var(--pr-muted)]">No hay partidas activas. Regresa a la Pantalla 2 para capturar conceptos.</p>
-            ) : (
-              <div className="space-y-1 divide-y divide-[color:var(--pr-line)]/70">
-                {activos.map((c) => <LineaResumen key={c.key} label={c.nombre} value={money(c.subtotalCliente)} />)}
-              </div>
-            )}
-          </SectionCard>
-
-          {historial.length > 0 && (
-            <SectionCard icon={History} title="Historial de Presupuestos" subtitle={`${historial.length} guardado${historial.length > 1 ? "s" : ""}`}>
-              <div className="space-y-2">
-                {historial.slice().reverse().map((h) => (
-                  <div key={h.id} className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--pr-line)] px-3.5 py-2.5">
-                    <div className="min-w-0">
-                      <div className="text-[13px] font-semibold truncate">{h.cliente || "Sin nombre"}</div>
-                      <div className="text-[11px] text-[color:var(--pr-muted)]">{h.fecha} · {money(h.total)}</div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <IconBtn onClick={() => onLoadHistorial(h)} title="Cargar"><FolderOpen size={14} /></IconBtn>
-                      <IconBtn tone="danger" onClick={() => onDeleteHistorial(h.id)} title="Eliminar"><Trash2 size={14} /></IconBtn>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <div className="rounded-xl overflow-hidden border border-[color:var(--pr-line)]" style={{ background: "var(--pr-ink)" }}>
-            <div className="relative px-5 py-5">
-              <BlueprintTexture className="text-[color:var(--pr-green)]" />
-              <div className="relative divide-y divide-white/10 text-white">
-                <div className="pb-2.5"><LineaResumen label="Subtotal Directo de Obra" value={money(presupuesto.subtotalDirecto)} /></div>
-                <div className="py-2.5"><LineaResumen label={`(+) Indirectos y Utilidad (${params.indirectos}%)`} value={money(presupuesto.indirectos)} /></div>
-                <div className="py-2.5"><LineaResumen label={`(+) Reserva para Imprevistos (${params.imprevistos}%)`} value={money(presupuesto.imprevistos)} /></div>
-                <div className="pt-3">
-                  <div className="text-[11px] uppercase tracking-wide text-[color:var(--pr-green)] font-bold mb-1">Costo Total Paramétrico</div>
-                  <div className="font-display text-[30px] tabular-nums leading-none">{money(presupuesto.total)}</div>
-                  {porM2 > 0 && <div className="text-[12px] text-white/50 mt-1.5 tabular-nums">{money(porM2)} / m²</div>}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2.5">
-            <Btn onClick={handlePrint} className="w-full"><Download size={15} /> Generar y Exportar PDF Membretado</Btn>
-            <div className="grid grid-cols-2 gap-2.5">
-              <Btn variant="outline" onClick={handleWhatsApp}><Send size={14} /> WhatsApp</Btn>
-              <Btn variant="outline" onClick={handleEmail}><Send size={14} /> Correo</Btn>
-            </div>
-            <Btn variant="dark" onClick={onSave} className="w-full" disabled={savingHistorial}>
-              {savingHistorial ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />} Guardar Presupuesto en Historial
-            </Btn>
-          </div>
-        </div>
+      <div className="flex gap-3">
+        <Btn variant="solid" onClick={() => window.print()} className="flex-1"><Download size={15} /> Imprimir / PDF Membretado</Btn>
+        <Btn variant="dark" onClick={onSave} className="flex-1"><Save size={15} /> Guardar en Historial</Btn>
       </div>
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------
-   11. APP PRINCIPAL
+   APP PRINCIPAL PRISMA
    ------------------------------------------------------------------------- */
-
 export default function PrismaApp() {
   const [screen, setScreen] = useState(1);
   const [proyecto, setProyecto] = useState(defaultProyecto());
@@ -1369,119 +995,55 @@ export default function PrismaApp() {
   const [partidas, setPartidas] = useState(defaultPartidas());
   const [priceBook, setPriceBook] = useState(DEFAULT_PRICEBOOK);
   const [historial, setHistorial] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [savingPB, setSavingPB] = useState(false);
-  const [savingHist, setSavingHist] = useState(false);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    (async () => {
-      const [pb, hist] = await Promise.all([storageGet(STORAGE_KEYS.priceBook), storageGet(STORAGE_KEYS.historial)]);
-      if (pb) setPriceBook(pb); else await storageSet(STORAGE_KEYS.priceBook, DEFAULT_PRICEBOOK);
-      if (hist) setHistorial(hist);
-      setLoading(false);
-    })();
+    const savedPB = storageGet(STORAGE_KEYS.priceBook);
+    const savedHist = storageGet(STORAGE_KEYS.historial);
+    if (savedPB) setPriceBook(savedPB);
+    if (savedHist) setHistorial(savedHist);
   }, []);
-
-  const firstPB = React.useRef(true);
-  useEffect(() => {
-    if (firstPB.current) { firstPB.current = false; return; }
-    setSavingPB(true);
-    const t = setTimeout(async () => { await storageSet(STORAGE_KEYS.priceBook, priceBook); setSavingPB(false); }, 500);
-    return () => clearTimeout(t);
-  }, [priceBook]);
 
   const presupuesto = useMemo(() => calcularPresupuesto(partidas, priceBook, params), [partidas, priceBook, params]);
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2600); };
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2800); };
 
-  const handleGuardarHistorial = useCallback(async () => {
-    setSavingHist(true);
-    const entry = { id: uid(), fecha: new Date().toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "numeric" }), cliente: proyecto.cliente, total: presupuesto.total, proyecto, partidas, params };
+  const handleSaveAsDefault = () => {
+    storageSet(STORAGE_KEYS.priceBook, priceBook);
+    showToast("¡Tarifario predeterminado guardado en tu perfil!");
+  };
+
+  const handleGuardarHistorial = () => {
+    const entry = { id: uid(), fecha: new Date().toLocaleDateString("es-MX"), cliente: proyecto.cliente, total: presupuesto.total, proyecto, partidas, params };
     const next = [...historial, entry];
     setHistorial(next);
-    await storageSet(STORAGE_KEYS.historial, next);
-    setSavingHist(false);
+    storageSet(STORAGE_KEYS.historial, next);
     showToast("Presupuesto guardado en historial");
-  }, [historial, proyecto, partidas, params, presupuesto.total]);
-
-  const handleCargarHistorial = (h) => {
-    setProyecto(h.proyecto); setPartidas(h.partidas); setParams(h.params); setScreen(5);
-    showToast("Presupuesto cargado");
   };
-
-  const handleEliminarHistorial = async (id) => {
-    const next = historial.filter((h) => h.id !== id);
-    setHistorial(next);
-    await storageSet(STORAGE_KEYS.historial, next);
-  };
-
-  const handleNuevo = () => {
-    if (!confirm("¿Iniciar un nuevo presupuesto? Se perderán los datos no guardados en historial.")) return;
-    setProyecto(defaultProyecto()); setPartidas(defaultPartidas()); setParams(defaultParams()); setScreen(1);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[520px] flex items-center justify-center" style={{ background: "var(--pr-canvas)" }}>
-        <div className="flex flex-col items-center gap-3 text-[color:var(--pr-muted)]">
-          <Loader2 size={26} className="animate-spin" />
-          <span className="text-[13px] font-medium">Cargando tarifario…</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div style={{ "--pr-canvas": "#EEF0EC", "--pr-ink": "#14181B", "--pr-green": "#22C55E", "--pr-green-ink": "#15803D", "--pr-line": "#DDDFD8", "--pr-muted": "#697068" }} className="min-h-screen" >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap');
-        .font-display { font-family: 'Archivo Black', 'Inter', sans-serif; }
-        * { font-family: 'Inter', system-ui, sans-serif; }
-        .font-mono { font-family: 'IBM Plex Mono', monospace; }
-        .print-only { display: none; }
-        @media print {
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          body { background: white; }
-        }
-      `}</style>
-      <div style={{ background: "var(--pr-canvas)", color: "var(--pr-ink)" }} className="min-h-screen">
-        <Header screen={screen} setScreen={setScreen} cliente={proyecto.cliente} />
+    <div style={{ "--pr-canvas": "#EEF0EC", "--pr-ink": "#14181B", "--pr-green": "#22C55E", "--pr-green-ink": "#15803D", "--pr-line": "#DDDFD8", "--pr-muted": "#697068" }} className="min-h-screen">
+      <Header screen={screen} setScreen={setScreen} cliente={proyecto.cliente} />
+      <main className="max-w-6xl mx-auto px-4 py-6 pb-16">
+        {screen === 1 && <Screen1 proyecto={proyecto} setProyecto={setProyecto} params={params} setParams={setParams} onNext={() => setScreen(2)} />}
+        {screen === 2 && <Screen2 partidas={partidas} setPartidas={setPartidas} priceBook={priceBook} params={params} />}
+        {screen === 3 && <Screen3 partidas={partidas} priceBook={priceBook} params={params} />}
+        {screen === 4 && <Screen4 priceBook={priceBook} setPriceBook={setPriceBook} onSaveAsDefault={handleSaveAsDefault} />}
+        {screen === 5 && <Screen5 proyecto={proyecto} presupuesto={presupuesto} params={params} onSave={handleGuardarHistorial} historial={historial} />}
 
-        <main className="no-print max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-16">
-          {screen === 1 && <Screen1 proyecto={proyecto} setProyecto={setProyecto} params={params} setParams={setParams} onNext={() => setScreen(2)} />}
-          {screen === 2 && <Screen2 partidas={partidas} setPartidas={setPartidas} priceBook={priceBook} params={params} />}
-          {screen === 3 && <Screen3 partidas={partidas} priceBook={priceBook} params={params} />}
-          {screen === 4 && <Screen4 priceBook={priceBook} setPriceBook={setPriceBook} saving={savingPB} />}
-          {screen === 5 && (
-            <Screen5
-              proyecto={proyecto} presupuesto={presupuesto} params={params}
-              onSave={handleGuardarHistorial} historial={historial}
-              onLoadHistorial={handleCargarHistorial} onDeleteHistorial={handleEliminarHistorial}
-              savingHistorial={savingHist}
-            />
-          )}
-
-          {screen > 1 && (
-            <div className="flex items-center justify-between mt-6 pt-5 border-t border-[color:var(--pr-line)]">
-              <Btn variant="ghost" onClick={() => setScreen((s) => Math.max(1, s - 1))}><ArrowLeft size={15} /> Anterior</Btn>
-              <div className="flex items-center gap-2.5">
-                <Btn variant="outline" onClick={handleNuevo}><RefreshCw size={14} /> Nuevo Presupuesto</Btn>
-                {screen < 5 && <Btn onClick={() => setScreen((s) => Math.min(5, s + 1))}>Siguiente <ArrowRight size={15} /></Btn>}
-              </div>
-            </div>
-          )}
-        </main>
-
-        <PrintReport proyecto={proyecto} presupuesto={presupuesto} params={params} />
-
-        {toast && (
-          <div className="no-print fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 rounded-full bg-[color:var(--pr-ink)] text-white px-4 py-2.5 text-[13px] font-medium shadow-lg">
-            <CheckCircle2 size={15} className="text-[color:var(--pr-green)]" /> {toast}
+        {screen > 1 && (
+          <div className="flex justify-between border-t pt-4 mt-6">
+            <Btn variant="ghost" onClick={() => setScreen((s) => Math.max(1, s - 1))}><ArrowLeft size={15} /> Anterior</Btn>
+            {screen < 5 && <Btn onClick={() => setScreen((s) => Math.min(5, s + 1))}>Siguiente <ArrowRight size={15} /></Btn>}
           </div>
         )}
-      </div>
+      </main>
+
+      {toast && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[color:var(--pr-ink)] text-white px-5 py-3 text-[13px] shadow-xl">
+          <CheckCircle2 size={16} className="text-[color:var(--pr-green)]" /> {toast}
+        </div>
+      )}
     </div>
   );
 }
