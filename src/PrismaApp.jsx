@@ -8,9 +8,8 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v3.7)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v3.8)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
-   Includes: Desglose completo de conceptos + Reporte impreso y Notas Comerciales
    ========================================================================= */
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -558,9 +557,9 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V3.7
+   PERSISTENCIA V3.8 (Selector Vano Corregido)
    ------------------------------------------------------------------------- */
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v3.7", historial: "prisma:historial:v3.7" };
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v3.8", historial: "prisma:historial:v3.8" };
 
 function storageGet(key) {
   try {
@@ -1434,7 +1433,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v3.7 guardado correctamente!");
+    showToast("¡Tarifario v3.8 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
