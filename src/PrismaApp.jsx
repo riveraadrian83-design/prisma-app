@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v5.1 Clean + Muros Ligeros & Comodín)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v5.2 Clean + Resanes por ml)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
@@ -53,6 +53,10 @@ const DEFAULT_MATERIALES = [
   { id: "tablaroca_st_insumo", codigo: "MAT-34", descripcion: "Panel Tablaroca ST 1/2\" + Estructura y Redimix", unidad: "m2", precio: 145, marca: "USG" },
   { id: "tablaroca_rh_insumo", codigo: "MAT-35", descripcion: "Panel Tablaroca RH (Humedad) 1/2\" + Estructura", unidad: "m2", precio: 195, marca: "USG" },
   { id: "durock_insumo", codigo: "MAT-36", descripcion: "Panel Durock 1/2\" + Estructura, Cinta MESH y Basecoat", unidad: "m2", precio: 380, marca: "USG" },
+
+  // INSUMOS PARA RESANES Y EMBOQUILLADOS
+  { id: "adhesivo_mortero", codigo: "MAT-37", descripcion: "Adhesivo para Unir Mortero Nuevo a Viejo (Festerbond)", unidad: "ml", precio: 18, marca: "Fester" },
+  { id: "mortero_resane", codigo: "MAT-38", descripcion: "Mortero / Yeso / Pasta para Resane y Emboquillado", unidad: "ml", precio: 25, marca: "Cemex" },
 ];
 
 const DEFAULT_MANO_OBRA = [
@@ -89,18 +93,23 @@ const MATRICES = {
   muro_durock_1c: { nombre: "Muro Ligero Durock / Cemento (1 cara)", unidad: "m2", materiales: [{ id: "durock_insumo", cant: 1 }], cuadrilla: "MO-02", rendimiento: 12 },
   muro_durock_2c: { nombre: "Muro Ligero Durock / Cemento (2 caras)", unidad: "m2", materiales: [{ id: "durock_insumo", cant: 1.85 }], cuadrilla: "MO-02", rendimiento: 8 },
 
+  // MATRICES PARA RESANES Y EMBOQUILLADOS (por ml, desarrollo ancho base 30 cm)
+  resane_emboquillado: { nombre: "Emboquillado y Perfilado en Vano (hasta 30 cm ancho)", unidad: "ml", materiales: [{ id: "mortero_resane", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
+  resane_huella: { nombre: "Resane / Cierre de Huella por Demolición de Muro (hasta 30 cm ancho)", unidad: "ml", materiales: [{ id: "mortero_resane", cant: 1 }, { id: "adhesivo_mortero", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
+  resane_rozas: { nombre: "Resane y Cierre de Rozas / Ranuras de Instalación (hasta 30 cm ancho)", unidad: "ml", materiales: [{ id: "mortero_resane", cant: 1 }], cuadrilla: "MO-01", rendimiento: 18 },
+
   acabado_Enjarre: { nombre: "Enjarre o Aplanado Cemento-Arena", unidad: "m2", materiales: [{ id: "cemento_arena_aplanado", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
   acabado_Yeso: { nombre: "Aplanado de Yeso", unidad: "m2", materiales: [{ id: "yeso", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
   acabado_Estuco: { nombre: "Acabado Estuco", unidad: "m2", materiales: [{ id: "estuco", cant: 1 }], cuadrilla: "MO-01", rendimiento: 8 },
   acabado_Azulejo: { nombre: "Recubrimiento de Azulejo", unidad: "m2", materiales: [{ id: "azulejo_kit", cant: 1 }], cuadrilla: "MO-01", rendimiento: 7 },
   acabado_Aparente: { nombre: "Muro Aparente (sellado)", unidad: "m2", materiales: [{ id: "sellador_aparente", cant: 1 }], cuadrilla: "MO-01", rendimiento: 40 },
-  firme: { nombre: "Firme de Concreto f'c=200", unidad: "m2", materiales: [{ id: "concreto_200", cant: 1 }, { id: "malla_electrosoldada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 25 },
+  firme: { nombre: "Firme de Concreto Interior f'c=200", unidad: "m2", materiales: [{ id: "concreto_200", cant: 1 }, { id: "malla_electrosoldada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 25 },
   pintura_vinilica: { nombre: "Pintura Vinílica (2 manos)", unidad: "m2", materiales: [{ id: "pintura_vinilica", cant: 1 }], cuadrilla: "MO-03", rendimiento: 35 },
   pasta_texturizada: { nombre: "Pasta Texturizada", unidad: "m2", materiales: [{ id: "pasta_texturizada", cant: 1 }], cuadrilla: "MO-03", rendimiento: 20 },
   "piso_Cerámico": { nombre: "Piso Cerámico", unidad: "m2", materiales: [{ id: "piso_ceramico", cant: 1 }], cuadrilla: "MO-01", rendimiento: 18 },
-  piso_Porcelanato: { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
+  piso_Porcelanato": { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
   "piso_Concreto Pulido": { nombre: "Concreto Pulido", unidad: "m2", materiales: [{ id: "concreto_pulido_insumo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 30 },
-  piso_Terrazzo: { nombre: "Terrazzo", unidad: "m2", materiales: [{ id: "terrazzo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 10 },
+  piso_Terrazzo": { nombre: "Terrazzo", unidad: "m2", materiales: [{ id: "terrazzo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 10 },
   "piso_Duela Laminada": { nombre: "Duela Laminada", unidad: "m2", materiales: [{ id: "duela_laminada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 20 },
   "piso_Duela Vinílica tipo SPC o LVT": { nombre: "Duela Vinílica SPC/LVT", unidad: "m2", materiales: [{ id: "duela_vinilica", cant: 1 }], cuadrilla: "MO-01", rendimiento: 22 },
 };
@@ -129,7 +138,7 @@ const CAPITULOS_META = [
 function defaultPartidas() {
   return {
     preliminares: { aplica: false, trazo: { m2: "", puRapido: "" }, demoliciones: [], conceptosExtra: [] },
-    albanileria: { aplica: false, muros: { m2: "", caraA: "Aparente", caraB: "Aparente", mismoAcabado: true }, murosLigeros: [], firmes: { m2: "" } },
+    albanileria: { aplica: false, muros: { m2: "", caraA: "Aparente", caraB: "Aparente", mismoAcabado: true }, murosLigeros: [], resanes: [], firmes: { m2: "" } },
     estructuras: { aplica: false, elementos: [] },
     acabados: { aplica: false, pintura: { m2Muros: "", m2Plafones: "", tipo: "vinilica" } },
     pisos: { aplica: false, tipo: "Cerámico", m2: "" },
@@ -365,7 +374,25 @@ function calcAlbanileria(p, priceBook, params) {
     });
   }
 
-  // 3. Firmes
+  // 3. Resanes y Emboquillados por metro lineal
+  if (p.resanes && p.resanes.length > 0) {
+    p.resanes.forEach((r) => {
+      const cantMl = num(r.ml);
+      if (cantMl <= 0) return;
+
+      let key = "resane_emboquillado";
+      if (r.tipo === "huella") key = "resane_huella";
+      if (r.tipo === "rozas") key = "resane_rozas";
+
+      items.push({
+        id: r.id,
+        concepto: `Resane: ${r.tipo === "emboquillado" ? "Emboquillado / Perfilado en vano" : r.tipo === "huella" ? "Cierre de huella por muro demolidor" : "Cierre de rozas/ranuras de instalación"} (ancho ≤30 cm)`,
+        ...calcConcepto(key, cantMl, priceBook, params)
+      });
+    });
+  }
+
+  // 4. Firmes
   const cantFirme = num(p.firmes.m2);
   if (cantFirme > 0) items.push({ id: "firme", concepto: "Firme de Concreto Interior f'c=200 kg/cm2", ...calcConcepto("firme", cantFirme, priceBook, params) });
   
@@ -627,9 +654,9 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V5.1
+   PERSISTENCIA V5.2
    ------------------------------------------------------------------------- */
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v5.1", historial: "prisma:historial:v5.1" };
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v5.2", historial: "prisma:historial:v5.2" };
 
 function storageGet(key) {
   try {
@@ -863,7 +890,7 @@ function Screen1({ proyecto, setProyecto, params, setParams, onNext }) {
         </div>
         <div className="mt-3 p-3 rounded-lg border border-amber-200 bg-amber-50 text-[12px] text-amber-900 flex items-center gap-2">
           <ShieldAlert size={16} className="shrink-0 text-amber-600" />
-          <span><b>Regla de Trabajo Pequeño / Destajo:</b> Si los m² de una partida son menores a {params.umbralMinimoM2 || 15} m², la app aplicará el cobro de 1 jornada completa de cuadrilla para cubrir costos mínimos de traslado.</span>
+          <span><b>Regla de Trabajo Pequeño / Destajo:</b> Si los m² o ml de una partida son menores a {params.umbralMinimoM2 || 15}, la app aplicará el cobro de 1 jornada completa de cuadrilla para cubrir costos mínimos de traslado.</span>
         </div>
       </SectionCard>
 
@@ -1015,9 +1042,34 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
             </RowList>
           </div>
 
+          {/* Resanes y Emboquillados por metro lineal */}
+          <div className="space-y-3 pt-3 border-t border-[color:var(--pr-line)]">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">3. Resanes y Emboquillados (Ancho base ≤30 cm)</span>
+            <RowList
+              addLabel="Agregar Tramo de Resane / Emboquillado (ml)"
+              onAdd={() => update("albanileria", (p) => ({ ...p, resanes: [...(p.resanes || []), { id: uid(), tipo: "emboquillado", ml: "" }] }))}
+            >
+              {(partidas.albanileria.resanes || []).map((r) => (
+                <div key={r.id} className="grid sm:grid-cols-[2fr_1fr_auto] gap-2.5 items-end rounded-lg border border-[color:var(--pr-line)] p-3">
+                  <Field label="Tipo de Resane">
+                    <Select value={r.tipo} onChange={(e) => update("albanileria", (p) => ({ ...p, resanes: p.resanes.map((x) => x.id === r.id ? { ...x, tipo: e.target.value } : x) }))}>
+                      <option value="emboquillado">Emboquillado / Perfilado en vano o marco</option>
+                      <option value="huella">Cierre de huella por demolición de muro</option>
+                      <option value="rozas">Cierre de rozas / ranuras de instalaciones</option>
+                    </Select>
+                  </Field>
+                  <Field label="Longitud (ml)">
+                    <NumberInput value={r.ml} onChange={(e) => update("albanileria", (p) => ({ ...p, resanes: p.resanes.map((x) => x.id === r.id ? { ...x, ml: e.target.value } : x) }))} placeholder="0" min="0" />
+                  </Field>
+                  <IconBtn tone="danger" onClick={() => update("albanileria", (p) => ({ ...p, resanes: p.resanes.filter((x) => x.id !== r.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
+
           {/* Firmes */}
           <div className="pt-3 border-t border-[color:var(--pr-line)]">
-            <Field label="3. Firmes de Concreto Interior f'c=200 (m²)">
+            <Field label="4. Firmes de Concreto Interior f'c=200 (m²)">
               <NumberInput value={partidas.albanileria.firmes.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, firmes: { m2: e.target.value } }))} placeholder="0" min="0" />
             </Field>
           </div>
@@ -1254,7 +1306,7 @@ function APUItemCard({ item }) {
               <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Mano de Obra</div>
               <div className="flex justify-between text-[12px]">
                 <span>{item.cuadrilla?.descripcion} {item.esTrabajoPequeno && "(Mínimo Cuadrilla)"}</span>
-                <b>{money(item.costoMO)} / m²</b>
+                <b>{money(item.costoMO)} / {item.unidad}</b>
               </div>
             </div>
           )}
@@ -1580,7 +1632,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v5.1 guardado correctamente!");
+    showToast("¡Tarifario v5.2 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
