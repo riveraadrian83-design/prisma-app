@@ -8,10 +8,18 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PLATAFORMA DE PRESUPUESTOS (v6.0 Regional Completo)
+   PRISMA ARQUITECTURA — PLATAFORMA DE PRESUPUESTOS (v7.0 Master Complete)
    ========================================================================= */
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+
+// --- HELPER FORMATO DE NOMBRE CON PREFIJO ARQ. AUTOMÁTICO ---
+function formatArqName(nombre) {
+  if (!nombre || !nombre.trim()) return "Arq. Asignado";
+  const clean = nombre.trim();
+  if (/^arq\.?/i.test(clean)) return clean;
+  return `Arq. ${clean}`;
+}
 
 // --- BASE DE DATOS REGIONAL: 32 ESTADOS DE LA REPÚBLICA MEXICANA ---
 const ESTADOS_MEXICO = [
@@ -678,12 +686,12 @@ function calcularPresupuesto(partidas, priceBook, params, factorZona = 1) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V6.0
+   PERSISTENCIA V7.0
    ------------------------------------------------------------------------- */
 const STORAGE_KEYS = { 
-  priceBook: "prisma:pricebook:v6.0", 
-  historial: "prisma:historial:v6.0",
-  perfilArq:  "prisma:perfil_arquitecto:v6.0"
+  priceBook: "prisma:pricebook:v7.0", 
+  historial: "prisma:historial:v7.0",
+  perfilArq:  "prisma:perfil_arquitecto:v7.0"
 };
 
 function storageGet(key) {
@@ -820,7 +828,7 @@ function PrismaMark({ size = 30 }) {
 }
 
 /* -------------------------------------------------------------------------
-   PANTALLA HOME / CONFIGURACIÓN GLOBAL (Pantalla 1 Croquis)
+   PANTALLA HOME / CONFIGURACIÓN GLOBAL
    ------------------------------------------------------------------------- */
 function ScreenHome({ arqPerfil, setArqPerfil, estadoSel, setEstadoSel, onIniciarModule }) {
   const estadoObj = ESTADOS_MEXICO.find((e) => e.id === estadoSel) || ESTADOS_MEXICO[8];
@@ -833,7 +841,7 @@ function ScreenHome({ arqPerfil, setArqPerfil, estadoSel, setEstadoSel, onInicia
         </div>
         <h1 className="font-display text-[26px] tracking-wide text-[color:var(--pr-ink)]">PRISMA ARQUITECTURA</h1>
         <p className="text-[13px] text-[color:var(--pr-muted)] uppercase tracking-wider font-semibold">
-          Plataforma de Estimación y Presupuestos Paramétricos
+          Plataforma de Estimación y Presupuestos Paramétricos v7.0
         </p>
       </div>
 
@@ -842,7 +850,7 @@ function ScreenHome({ arqPerfil, setArqPerfil, estadoSel, setEstadoSel, onInicia
           <Field label="Nombre Completo del Arquitecto / Responsable">
             <div className="relative">
               <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--pr-muted)]" />
-              <TextInput value={arqPerfil.nombre} onChange={(e) => setArqPerfil((p) => ({ ...p, nombre: e.target.value }))} placeholder="Ej. Arq. Adrian Pérez" className="pl-9" />
+              <TextInput value={arqPerfil.nombre} onChange={(e) => setArqPerfil((p) => ({ ...p, nombre: e.target.value }))} placeholder="Ej. Adrian Pérez" className="pl-9" />
             </div>
           </Field>
           <Field label="Cédula Profesional">
@@ -882,7 +890,7 @@ function ScreenHome({ arqPerfil, setArqPerfil, estadoSel, setEstadoSel, onInicia
 }
 
 /* -------------------------------------------------------------------------
-   PANTALLA DE SELECCIÓN DE MÓDULOS (Pantalla 2 Croquis)
+   PANTALLA DE SELECCIÓN DE MÓDULOS
    ------------------------------------------------------------------------- */
 function ScreenModuleSelector({ estadoSel, onSelectModule, arqPerfil }) {
   const estadoObj = ESTADOS_MEXICO.find((e) => e.id === estadoSel) || ESTADOS_MEXICO[8];
@@ -893,7 +901,7 @@ function ScreenModuleSelector({ estadoSel, onSelectModule, arqPerfil }) {
         <div>
           <h2 className="font-display text-[20px] text-[color:var(--pr-ink)]">SELECCIÓN DE MÓDULO</h2>
           <p className="text-[12px] text-[color:var(--pr-muted)]">
-            Arquitecto: <b>{arqPerfil.nombre || "No registrado"}</b> | Cédula: <b>{arqPerfil.cedula || "N/A"}</b>
+            Responsable: <b>{formatArqName(arqPerfil.nombre)}</b> | Cédula: <b>{arqPerfil.cedula || "N/A"}</b>
           </p>
         </div>
         <div className="text-right">
@@ -950,11 +958,37 @@ function ScreenParametricoM2({ estadoSel, arqPerfil, onVolver }) {
   const [pctIndirectos, setPctIndirectos] = useState(15);
   const [pctProyecto, setPctProyecto] = useState(6);
 
+  const [especialidades, setEspecialidades] = useState({
+    cctv: false,
+    vozDatos: false,
+    domotica: false,
+    hvac: false,
+    paneles: false,
+  });
+
+  const toggleEspecialidad = (key) => {
+    setEspecialidades(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const pctEspecialidadesExtra = useMemo(() => {
+    let pct = 0;
+    if (especialidades.cctv) pct += 2.5;
+    if (especialidades.vozDatos) pct += 2.5;
+    if (especialidades.domotica) pct += 5.0;
+    if (especialidades.hvac) pct += 6.0;
+    if (especialidades.paneles) pct += 4.0;
+    return pct;
+  }, [especialidades]);
+
   const totalM2Construccion = useMemo(() => (num(m2Planta) * num(niveles)), [m2Planta, niveles]);
   const tipoInfo = TIPOLOGIAS_EDIFICACION[tipologia] || TIPOLOGIAS_EDIFICACION.vivienda_res;
 
-  const costoMinM2 = useMemo(() => tipoInfo.baseMin * estadoObj.factor, [tipoInfo, estadoObj]);
-  const costoMaxM2 = useMemo(() => tipoInfo.baseMax * estadoObj.factor, [tipoInfo, estadoObj]);
+  const costoBaseMinM2 = useMemo(() => tipoInfo.baseMin * estadoObj.factor, [tipoInfo, estadoObj]);
+  const costoBaseMaxM2 = useMemo(() => tipoInfo.baseMax * estadoObj.factor, [tipoInfo, estadoObj]);
+
+  const factorEspecialidades = 1 + (pctEspecialidadesExtra / 100);
+  const costoMinM2 = costoBaseMinM2 * factorEspecialidades;
+  const costoMaxM2 = costoBaseMaxM2 * factorEspecialidades;
 
   const subtotalObraMin = useMemo(() => totalM2Construccion * costoMinM2, [totalM2Construccion, costoMinM2]);
   const subtotalObraMax = useMemo(() => totalM2Construccion * costoMaxM2, [totalM2Construccion, costoMaxM2]);
@@ -989,6 +1023,42 @@ function ScreenParametricoM2({ estadoSel, arqPerfil, onVolver }) {
           <Field label="Número de Niveles"><NumberInput value={niveles} onChange={(e) => setNiveles(e.target.value)} min="1" /></Field>
           <Field label="% Indirectos y Licencias"><NumberInput value={pctIndirectos} onChange={(e) => setPctIndirectos(e.target.value)} min="0" /></Field>
           <Field label="% Proyecto Ejecutivo e Ingenierías"><NumberInput value={pctProyecto} onChange={(e) => setPctProyecto(e.target.value)} min="0" /></Field>
+        </div>
+
+        <div className="mt-5 pt-4 border-t border-[color:var(--pr-line)] space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)] flex items-center gap-1.5">
+              <Zap size={14} className="text-[color:var(--pr-green-ink)]" /> Instalaciones Especiales y Equipamiento Extra
+            </span>
+            {pctEspecialidadesExtra > 0 && (
+              <span className="text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
+                +{pctEspecialidadesExtra.toFixed(1)}% al Costo Base
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {[
+              ["cctv", "CCTV y Seguridad (+2.5%)"],
+              ["vozDatos", "Voz, Datos y Wi-Fi (+2.5%)"],
+              ["domotica", "Domótica / Smart Home (+5.0%)"],
+              ["hvac", "Aire Acondicionado / VRF (+6.0%)"],
+              ["paneles", "Paneles Solares (+4.0%)"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggleEspecialidad(key)}
+                className={`rounded-lg border px-3 py-2 text-[11.5px] font-bold text-left transition-all ${
+                  especialidades[key]
+                    ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/15 text-[color:var(--pr-green-ink)] shadow-sm"
+                    : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)] hover:border-gray-400"
+                }`}
+              >
+                {especialidades[key] ? "✓ " : "+ "} {label}
+              </button>
+            ))}
+          </div>
         </div>
       </SectionCard>
 
@@ -1034,7 +1104,7 @@ function ScreenParametricoM2({ estadoSel, arqPerfil, onVolver }) {
 
         <div className="mt-6 pt-4 border-t border-[color:var(--pr-line)] flex items-center justify-between text-[11px] text-[color:var(--pr-muted)]">
           <div>
-            Responsable del Cálculo: <b>{arqPerfil.nombre || "Arq. Asignado"}</b>
+            Responsable del Cálculo: <b>{formatArqName(arqPerfil.nombre)}</b>
           </div>
           <div>
             Cédula Profesional: <b>{arqPerfil.cedula || "N/A"}</b>
@@ -1135,7 +1205,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v6.0 guardado correctamente!");
+    showToast("¡Tarifario v7.0 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
@@ -1187,7 +1257,7 @@ export default function PrismaApp() {
       )}
 
       {moduloActivo === "m2" && (
-        <main className="no-print max-w-6xl mx-auto px-4 py-6">
+        <main className="max-w-6xl mx-auto px-4 py-6">
           <ScreenParametricoM2 estadoSel={estadoSel} arqPerfil={arqPerfil} onVolver={() => setModuloActivo("selector")} />
         </main>
       )}
@@ -1318,9 +1388,6 @@ function RowList({ children, onAdd, addLabel }) {
   );
 }
 
-/* -------------------------------------------------------------------------
-   SCREEN 2 RESTAURADO CON TODAS LAS PARTIDAS Y OPCIONES
-   ------------------------------------------------------------------------- */
 function Screen2({ partidas, setPartidas, priceBook, params, factorZona }) {
   const update = (key, fn) => setPartidas((prev) => ({ ...prev, [key]: fn(prev[key]) }));
   const preview = useMemo(() => calcularPresupuesto(partidas, priceBook, params, factorZona), [partidas, priceBook, params, factorZona]);
@@ -1775,7 +1842,7 @@ function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHisto
   const activos = presupuesto.capitulos.filter((c) => c.aplica && c.items.length > 0);
 
   const resumenTexto = () => {
-    let t = `*Presupuesto Paramétrico — Prisma Arquitectura*\nCliente: ${proyecto.cliente || "—"}\nUbicación: ${proyecto.ubicacion || "—"} (${estadoObj.nombre})\nSuperficie: ${proyecto.superficie || 0} m²\nElaboró: ${arqPerfil.nombre || "—"} (Cédula: ${arqPerfil.cedula || "N/A"})\n\n`;
+    let t = `*Presupuesto Paramétrico — Prisma Arquitectura*\nCliente: ${proyecto.cliente || "—"}\nUbicación: ${proyecto.ubicacion || "—"} (${estadoObj.nombre})\nSuperficie: ${proyecto.superficie || 0} m²\nElaboró: ${formatArqName(arqPerfil.nombre)} (Cédula: ${arqPerfil.cedula || "N/A"})\n\n`;
     activos.forEach((c) => {
       t += `*${c.nombre}*: ${money(c.subtotalCliente)}\n`;
       c.items.forEach(it => {
@@ -1794,7 +1861,7 @@ function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHisto
     <div className="space-y-5">
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
-          <SectionCard icon={FileText} title="Resumen Ejecutivo y Desglose de Cotización" subtitle={`Responsable: ${arqPerfil.nombre || "Arq. Asignado"} | Cédula: ${arqPerfil.cedula || "N/A"}`}>
+          <SectionCard icon={FileText} title="Resumen Ejecutivo y Desglose de Cotización" subtitle={`Responsable: ${formatArqName(arqPerfil.nombre)} | Cédula: ${arqPerfil.cedula || "N/A"}`}>
             {activos.length === 0 ? (
               <p className="text-[13px] text-[color:var(--pr-muted)]">No hay partidas activas. Regresa a la Pantalla 2 para capturar conceptos.</p>
             ) : (
@@ -1906,7 +1973,7 @@ function PrintReport({ proyecto, presupuesto, arqPerfil, estadoObj }) {
           <div><span className="font-bold">Ubicación:</span> {proyecto.ubicacion || "—"} ({estadoObj.nombre})</div>
           <div><span className="font-bold">Tipo de Inmueble:</span> {proyecto.tipo}</div>
           <div><span className="font-bold">Superficie:</span> {proyecto.superficie || 0} m²</div>
-          <div><span className="font-bold">Arquitecto Responsable:</span> {arqPerfil.nombre || "—"}</div>
+          <div><span className="font-bold">Arquitecto Responsable:</span> {formatArqName(arqPerfil.nombre)}</div>
           <div><span className="font-bold">Cédula Profesional:</span> {arqPerfil.cedula || "—"}</div>
         </div>
 
@@ -1959,7 +2026,7 @@ function PrintReport({ proyecto, presupuesto, arqPerfil, estadoObj }) {
 
         <div className="mt-8 pt-4 border-t border-black/20 text-[11px] flex justify-between">
           <div>
-            <b>Elaboró:</b> {arqPerfil.nombre || "—"}<br/>
+            <b>Elaboró:</b> {formatArqName(arqPerfil.nombre)}<br/>
             <b>Cédula Prof:</b> {arqPerfil.cedula || "—"}
           </div>
           <div className="text-right">
