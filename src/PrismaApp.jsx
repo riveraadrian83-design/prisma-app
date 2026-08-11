@@ -4,11 +4,11 @@ import {
   ChevronDown, Send, Save, Download, Settings2, Layers, Zap,
   Droplets, PaintBucket, DoorOpen, Boxes, History,
   ArrowLeft, ArrowRight, MapPin, Ruler, CheckCircle2,
-  FolderOpen, HardHat, ShieldAlert
+  FolderOpen, HardHat, ShieldAlert, Sparkles
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v5.0 Clean)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v5.1 Clean + Muros Ligeros & Comodín)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
@@ -48,6 +48,11 @@ const DEFAULT_MATERIALES = [
   { id: "flete_piso", codigo: "MAT-31", descripcion: "Acarreo/Retiro Escombro (piso/recubrimiento)", unidad: "m2", precio: 28, marca: "Ferretería La Siete" },
   { id: "flete_carpinteria", codigo: "MAT-32", descripcion: "Acarreo/Retiro Puertas y Ventanas", unidad: "m2", precio: 20, marca: "Ferretería La Siete" },
   { id: "fijaciones_reubicacion", codigo: "MAT-33", descripcion: "Consumibles de Reubicación (Taquetes, pijas, sellador)", unidad: "pza", precio: 120, marca: "Ferretería La Siete" },
+  
+  // INSUMOS PARA MUROS LIGEROS
+  { id: "tablaroca_st_insumo", codigo: "MAT-34", descripcion: "Panel Tablaroca ST 1/2\" + Estructura y Redimix", unidad: "m2", precio: 145, marca: "USG" },
+  { id: "tablaroca_rh_insumo", codigo: "MAT-35", descripcion: "Panel Tablaroca RH (Humedad) 1/2\" + Estructura", unidad: "m2", precio: 195, marca: "USG" },
+  { id: "durock_insumo", codigo: "MAT-36", descripcion: "Panel Durock 1/2\" + Estructura, Cinta MESH y Basecoat", unidad: "m2", precio: 380, marca: "USG" },
 ];
 
 const DEFAULT_MANO_OBRA = [
@@ -75,6 +80,15 @@ const MATRICES = {
   demol_piso: { nombre: "Demolición / Levantamiento de Piso o Acabado Cerámico/Porcelanato", unidad: "m2", materiales: [{ id: "flete_piso", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
   demol_vano: { nombre: "Retiro / Desmantelamiento de Puertas y Ventanas (Carpintería / Aluminio / Herrería)", unidad: "m2", materiales: [{ id: "flete_carpinteria", cant: 1 }], cuadrilla: "MO-06", rendimiento: 25 },
   muro_tabique: { nombre: "Muro de Tabique Rojo Recocido", unidad: "m2", materiales: [{ id: "tabique", cant: 32 }, { id: "mortero", cant: 0.03 }], cuadrilla: "MO-01", rendimiento: 6 },
+  
+  // MATRICES PARA MUROS LIGEROS
+  muro_tablaroca_st_1c: { nombre: "Muro Ligero Tablaroca Normal (1 cara)", unidad: "m2", materiales: [{ id: "tablaroca_st_insumo", cant: 1 }], cuadrilla: "MO-02", rendimiento: 20 },
+  muro_tablaroca_st_2c: { nombre: "Muro Ligero Tablaroca Normal (2 caras)", unidad: "m2", materiales: [{ id: "tablaroca_st_insumo", cant: 1.85 }], cuadrilla: "MO-02", rendimiento: 14 },
+  muro_tablaroca_rh_1c: { nombre: "Muro Ligero Tablaroca RH Zonas Húmedas (1 cara)", unidad: "m2", materiales: [{ id: "tablaroca_rh_insumo", cant: 1 }], cuadrilla: "MO-02", rendimiento: 18 },
+  muro_tablaroca_rh_2c: { nombre: "Muro Ligero Tablaroca RH Zonas Húmedas (2 caras)", unidad: "m2", materiales: [{ id: "tablaroca_rh_insumo", cant: 1.85 }], cuadrilla: "MO-02", rendimiento: 12 },
+  muro_durock_1c: { nombre: "Muro Ligero Durock / Cemento (1 cara)", unidad: "m2", materiales: [{ id: "durock_insumo", cant: 1 }], cuadrilla: "MO-02", rendimiento: 12 },
+  muro_durock_2c: { nombre: "Muro Ligero Durock / Cemento (2 caras)", unidad: "m2", materiales: [{ id: "durock_insumo", cant: 1.85 }], cuadrilla: "MO-02", rendimiento: 8 },
+
   acabado_Enjarre: { nombre: "Enjarre o Aplanado Cemento-Arena", unidad: "m2", materiales: [{ id: "cemento_arena_aplanado", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
   acabado_Yeso: { nombre: "Aplanado de Yeso", unidad: "m2", materiales: [{ id: "yeso", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
   acabado_Estuco: { nombre: "Acabado Estuco", unidad: "m2", materiales: [{ id: "estuco", cant: 1 }], cuadrilla: "MO-01", rendimiento: 8 },
@@ -103,23 +117,25 @@ const TIPOS_SALIDA_HIDRAULICA = ["Lavabo", "W.C.", "Regadera", "Fregadero"];
 
 const CAPITULOS_META = [
   { key: "preliminares", nombre: "01. Preliminares", icon: HardHat },
-  { key: "albanileria", nombre: "02. Albañilería", icon: Layers },
+  { key: "albanileria", nombre: "02. Albañilería y Muros", icon: Layers },
   { key: "estructuras", nombre: "03. Estructuras", icon: Boxes },
   { key: "acabados", nombre: "04. Acabados", icon: PaintBucket },
   { key: "pisos", nombre: "05. Pisos y Recubrimientos", icon: Ruler },
   { key: "canceleria", nombre: "06. Cancelería y Herrería", icon: DoorOpen },
   { key: "instalaciones", nombre: "07. Instalaciones", icon: Zap },
+  { key: "extraordinarios", nombre: "08. Trabajos Extraordinarios y Especialidades", icon: Sparkles },
 ];
 
 function defaultPartidas() {
   return {
     preliminares: { aplica: false, trazo: { m2: "", puRapido: "" }, demoliciones: [], conceptosExtra: [] },
-    albanileria: { aplica: false, muros: { m2: "", caraA: "Aparente", caraB: "Aparente", mismoAcabado: true }, firmes: { m2: "" } },
+    albanileria: { aplica: false, muros: { m2: "", caraA: "Aparente", caraB: "Aparente", mismoAcabado: true }, murosLigeros: [], firmes: { m2: "" } },
     estructuras: { aplica: false, elementos: [] },
     acabados: { aplica: false, pintura: { m2Muros: "", m2Plafones: "", tipo: "vinilica" } },
     pisos: { aplica: false, tipo: "Cerámico", m2: "" },
     canceleria: { aplica: false, elementos: [] },
     instalaciones: { aplica: false, electrica: [], hidraulica: [] },
+    extraordinarios: { aplica: false, conceptos: [] },
   };
 }
 
@@ -239,6 +255,8 @@ function findCuadrilla(priceBook, codigo) {
 
 function calcConcepto(matrizKey, cantidad, priceBook, params, overrideRendimiento) {
   const mz = MATRICES[matrizKey];
+  if (!mz) return { nombre: matrizKey, unidad: "m2", total: 0, puTotal: 0, cantidad: 0 };
+
   const matDetalle = mz.materiales.map((m) => {
     const insumo = priceBook.materiales.find((x) => x.id === m.id);
     const precio = insumo ? insumo.precio : 0;
@@ -318,6 +336,8 @@ function calcPreliminares(p, priceBook, params) {
 
 function calcAlbanileria(p, priceBook, params) {
   const items = [];
+  
+  // 1. Tabique Rojo Recocido
   const cantMuro = num(p.muros.m2);
   if (cantMuro > 0) {
     items.push({ id: "muro", concepto: "Muro de Tabique Rojo Recocido (matriz base)", ...calcConcepto("muro_tabique", cantMuro, priceBook, params) });
@@ -325,8 +345,30 @@ function calcAlbanileria(p, priceBook, params) {
     items.push({ id: "caraA", concepto: `Acabado Cara A: ${p.muros.caraA}`, ...calcConcepto(`acabado_${p.muros.caraA}`, cantMuro, priceBook, params) });
     items.push({ id: "caraB", concepto: `Acabado Cara B: ${caraB}`, ...calcConcepto(`acabado_${caraB}`, cantMuro, priceBook, params) });
   }
+
+  // 2. Muros Ligeros (Tablaroca ST, RH, Durock)
+  if (p.murosLigeros && p.murosLigeros.length > 0) {
+    p.murosLigeros.forEach((ml) => {
+      const cant = num(ml.m2);
+      if (cant <= 0) return;
+      
+      let key = "muro_tablaroca_st_2c";
+      if (ml.tipo === "st") key = ml.caras === "1" ? "muro_tablaroca_st_1c" : "muro_tablaroca_st_2c";
+      if (ml.tipo === "rh") key = ml.caras === "1" ? "muro_tablaroca_rh_1c" : "muro_tablaroca_rh_2c";
+      if (ml.tipo === "durock") key = ml.caras === "1" ? "muro_durock_1c" : "muro_durock_2c";
+
+      items.push({
+        id: ml.id,
+        concepto: `Muro Ligero: ${ml.tipo === "st" ? "Tablaroca ST" : ml.tipo === "rh" ? "Tablaroca RH (Humedad)" : "Durock (Cemento)"} a ${ml.caras} cara(s)`,
+        ...calcConcepto(key, cant, priceBook, params)
+      });
+    });
+  }
+
+  // 3. Firmes
   const cantFirme = num(p.firmes.m2);
   if (cantFirme > 0) items.push({ id: "firme", concepto: "Firme de Concreto Interior f'c=200 kg/cm2", ...calcConcepto("firme", cantFirme, priceBook, params) });
+  
   return items;
 }
 
@@ -523,12 +565,41 @@ function calcInstalaciones(p, priceBook, params) {
   return items;
 }
 
+// PARTIDA COMODÍN: TRABAJOS EXTRAORDINARIOS
+function calcExtraordinarios(p) {
+  if (!p.conceptos || p.conceptos.length === 0) return [];
+  return p.conceptos.map((c) => {
+    const cant = num(c.cantidad);
+    const pu = num(c.pu);
+    const total = cant * pu;
+    return {
+      id: c.id,
+      concepto: c.descripcion || "Trabajo Especial / Extraordinario",
+      unidad: c.unidad || "Lote",
+      cantidad: cant,
+      puTotal: pu,
+      total: total,
+      manual: true,
+      matDetalle: [{ codigo: "EXTRA", descripcion: "Costo Directo Especial / Subcontrato", unidad: c.unidad || "Lote", cantidad: cant, precio: pu, importe: total }]
+    };
+  });
+}
+
 function calcularPresupuesto(partidas, priceBook, params) {
-  const calcMap = { preliminares: calcPreliminares, albanileria: calcAlbanileria, estructuras: calcEstructuras, acabados: calcAcabados, pisos: calcPisos, canceleria: calcCanceleria, instalaciones: calcInstalaciones };
+  const calcMap = {
+    preliminares: calcPreliminares,
+    albanileria: calcAlbanileria,
+    estructuras: calcEstructuras,
+    acabados: calcAcabados,
+    pisos: calcPisos,
+    canceleria: calcCanceleria,
+    instalaciones: calcInstalaciones,
+    extraordinarios: calcExtraordinarios
+  };
   const factorSobrecosto = 1 + (num(params.indirectos) + num(params.imprevistos)) / 100;
 
   const capitulos = CAPITULOS_META.map((meta) => {
-    const p = partidas[meta.key];
+    const p = partidas[meta.key] || { aplica: false };
     const itemsRaw = p.aplica ? calcMap[meta.key](p, priceBook, params) : [];
     
     const items = itemsRaw.map(it => {
@@ -556,9 +627,9 @@ function calcularPresupuesto(partidas, priceBook, params) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V5.0 (Cuadrilla MO-06 Aluminero / Cancelero)
+   PERSISTENCIA V5.1
    ------------------------------------------------------------------------- */
-const STORAGE_KEYS = { priceBook: "prisma:pricebook:v5.0", historial: "prisma:historial:v5.0" };
+const STORAGE_KEYS = { priceBook: "prisma:pricebook:v5.1", historial: "prisma:historial:v5.1" };
 
 function storageGet(key) {
   try {
@@ -882,35 +953,74 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
         </div>
       </CapituloShell>
 
-      {/* 02. ALBAÑILERÍA */}
+      {/* 02. ALBAÑILERÍA Y MUROS */}
       <CapituloShell meta={CAPITULOS_META[1]} aplica={partidas.albanileria.aplica} subtotal={subtotalOf("albanileria")} onToggle={(v) => update("albanileria", (p) => ({ ...p, aplica: v }))}>
-        <div className="space-y-5">
-          <Field label="Muros de Tabique Rojo Recocido (m²)">
-            <NumberInput value={partidas.albanileria.muros.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, m2: e.target.value } }))} placeholder="0" min="0" />
-          </Field>
-          <div className="rounded-lg border border-[color:var(--pr-line)] p-4 space-y-3.5">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)]">Configuración de Caras</span>
-              <button type="button" onClick={() => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, mismoAcabado: !p.muros.mismoAcabado, caraB: p.muros.caraA } }))} className={`text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border transition-colors ${partidas.albanileria.muros.mismoAcabado ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}>
-                Ambas Caras con Mismo Acabado
-              </button>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Cara A">
-                <Select value={partidas.albanileria.muros.caraA} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraA: e.target.value, caraB: p.muros.mismoAcabado ? e.target.value : p.muros.caraB } }))}>
-                  {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
-                </Select>
-              </Field>
-              <Field label="Cara B">
-                <Select disabled={partidas.albanileria.muros.mismoAcabado} value={partidas.albanileria.muros.caraB} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraB: e.target.value } }))}>
-                  {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
-                </Select>
-              </Field>
+        <div className="space-y-6">
+          {/* Muro Tradicional */}
+          <div className="space-y-3">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">1. Muro Tradicional de Tabique Rojo</span>
+            <Field label="Muros de Tabique Rojo Recocido (m²)">
+              <NumberInput value={partidas.albanileria.muros.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, m2: e.target.value } }))} placeholder="0" min="0" />
+            </Field>
+            <div className="rounded-lg border border-[color:var(--pr-line)] p-4 space-y-3.5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)]">Configuración de Caras (Tabique)</span>
+                <button type="button" onClick={() => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, mismoAcabado: !p.muros.mismoAcabado, caraB: p.muros.caraA } }))} className={`text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border transition-colors ${partidas.albanileria.muros.mismoAcabado ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}>
+                  Ambas Caras con Mismo Acabado
+                </button>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Cara A">
+                  <Select value={partidas.albanileria.muros.caraA} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraA: e.target.value, caraB: p.muros.mismoAcabado ? e.target.value : p.muros.caraB } }))}>
+                    {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                </Field>
+                <Field label="Cara B">
+                  <Select disabled={partidas.albanileria.muros.mismoAcabado} value={partidas.albanileria.muros.caraB} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraB: e.target.value } }))}>
+                    {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                </Field>
+              </div>
             </div>
           </div>
-          <Field label="Firmes de Concreto Interior f'c=200 (m²)">
-            <NumberInput value={partidas.albanileria.firmes.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, firmes: { m2: e.target.value } }))} placeholder="0" min="0" />
-          </Field>
+
+          {/* Muros Ligeros (Tablaroca ST, RH, Durock) */}
+          <div className="space-y-3 pt-3 border-t border-[color:var(--pr-line)]">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">2. Muros Ligeros (Tablaroca / Durock)</span>
+            <RowList
+              addLabel="Agregar Muro Ligero (Tablaroca ST / RH / Durock)"
+              onAdd={() => update("albanileria", (p) => ({ ...p, murosLigeros: [...(p.murosLigeros || []), { id: uid(), tipo: "st", caras: "2", m2: "" }] }))}
+            >
+              {(partidas.albanileria.murosLigeros || []).map((ml) => (
+                <div key={ml.id} className="grid sm:grid-cols-[1.5fr_1fr_1fr_auto] gap-2.5 items-end rounded-lg border border-[color:var(--pr-line)] p-3">
+                  <Field label="Tipo de Panel">
+                    <Select value={ml.tipo} onChange={(e) => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.map((x) => x.id === ml.id ? { ...x, tipo: e.target.value } : x) }))}>
+                      <option value="st">Tablaroca ST (Estándar)</option>
+                      <option value="rh">Tablaroca RH (Humedad)</option>
+                      <option value="durock">Durock / Panel Cemento</option>
+                    </Select>
+                  </Field>
+                  <Field label="Caras">
+                    <Select value={ml.caras} onChange={(e) => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.map((x) => x.id === ml.id ? { ...x, caras: e.target.value } : x) }))}>
+                      <option value="1">1 Cara</option>
+                      <option value="2">2 Caras</option>
+                    </Select>
+                  </Field>
+                  <Field label="Superficie (m²)">
+                    <NumberInput value={ml.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.map((x) => x.id === ml.id ? { ...x, m2: e.target.value } : x) }))} placeholder="0" min="0" />
+                  </Field>
+                  <IconBtn tone="danger" onClick={() => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.filter((x) => x.id !== ml.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
+
+          {/* Firmes */}
+          <div className="pt-3 border-t border-[color:var(--pr-line)]">
+            <Field label="3. Firmes de Concreto Interior f'c=200 (m²)">
+              <NumberInput value={partidas.albanileria.firmes.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, firmes: { m2: e.target.value } }))} placeholder="0" min="0" />
+            </Field>
+          </div>
         </div>
       </CapituloShell>
 
@@ -1065,6 +1175,37 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
           </div>
         </div>
       </CapituloShell>
+
+      {/* 08. PARTIDA COMODÍN — TRABAJOS EXTRAORDINARIOS */}
+      <CapituloShell meta={CAPITULOS_META[7]} aplica={partidas.extraordinarios?.aplica || false} subtotal={subtotalOf("extraordinarios")} onToggle={(v) => update("extraordinarios", (p) => ({ ...p, aplica: v }))}>
+        <div className="space-y-4">
+          <div className="text-[12px] text-[color:var(--pr-muted)] bg-[color:var(--pr-canvas)]/60 p-3 rounded-lg border border-[color:var(--pr-line)]">
+            Usa esta partida comodín para agregar trabajos especiales (ej. carpintería a medida, clósets, herrería artesanal, etc.). Se le aplicarán automáticamente tus porcentajes de sobrecosto.
+          </div>
+          <RowList
+            addLabel="Agregar Concepto Extraordinario"
+            onAdd={() => update("extraordinarios", (p) => ({ ...p, conceptos: [...(p.conceptos || []), { id: uid(), descripcion: "", unidad: "Pza", cantidad: 1, pu: "" }] }))}
+          >
+            {(partidas.extraordinarios?.conceptos || []).map((c) => (
+              <div key={c.id} className="grid sm:grid-cols-[2fr_80px_90px_130px_auto] gap-2 items-end rounded-lg border border-[color:var(--pr-line)] p-3">
+                <Field label="Descripción del Trabajo">
+                  <TextInput value={c.descripcion} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, descripcion: e.target.value } : x) }))} placeholder="Ej. Clóset de madera en MDF según diseño" />
+                </Field>
+                <Field label="Unidad">
+                  <TextInput value={c.unidad} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, unidad: e.target.value } : x) }))} placeholder="Pza" />
+                </Field>
+                <Field label="Cantidad">
+                  <NumberInput value={c.cantidad} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="1" min="0" />
+                </Field>
+                <Field label="Costo Dir. Unit. ($)">
+                  <NumberInput value={c.pu} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, pu: e.target.value } : x) }))} placeholder="0.00" min="0" />
+                </Field>
+                <IconBtn tone="danger" onClick={() => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.filter((x) => x.id !== c.id) }))}><Trash2 size={15} /></IconBtn>
+              </div>
+            ))}
+          </RowList>
+        </div>
+      </CapituloShell>
     </div>
   );
 }
@@ -1082,6 +1223,11 @@ function APUItemCard({ item }) {
                 Jornada Mínima Aplicada
               </span>
             )}
+            {item.manual && (
+              <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                Directo / Comodín
+              </span>
+            )}
           </div>
           <div className="text-[11.5px] text-[color:var(--pr-muted)] tabular-nums">{item.cantidad} {item.unidad} × {money(item.puTotal)}</div>
         </div>
@@ -1094,7 +1240,7 @@ function APUItemCard({ item }) {
         <div className="px-4 pb-4 pt-1 border-t border-[color:var(--pr-line)] bg-[color:var(--pr-canvas)]/40 text-[12.5px] space-y-2">
           {item.matDetalle?.length > 0 && (
             <div>
-              <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Insumos</div>
+              <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Insumos / Base Directa</div>
               {item.matDetalle.map((m, i) => (
                 <div key={i} className="flex justify-between text-[12px]">
                   <span>{m.descripcion}</span>
@@ -1103,13 +1249,15 @@ function APUItemCard({ item }) {
               ))}
             </div>
           )}
-          <div>
-            <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Mano de Obra</div>
-            <div className="flex justify-between text-[12px]">
-              <span>{item.cuadrilla?.descripcion} {item.esTrabajoPequeno && "(Mínimo Cuadrilla)"}</span>
-              <b>{money(item.costoMO)} / m²</b>
+          {item.cuadrilla && (
+            <div>
+              <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Mano de Obra</div>
+              <div className="flex justify-between text-[12px]">
+                <span>{item.cuadrilla?.descripcion} {item.esTrabajoPequeno && "(Mínimo Cuadrilla)"}</span>
+                <b>{money(item.costoMO)} / m²</b>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
@@ -1432,7 +1580,7 @@ export default function PrismaApp() {
 
   const handleSaveAsDefault = () => {
     storageSet(STORAGE_KEYS.priceBook, priceBook);
-    showToast("¡Tarifario v5.0 guardado correctamente!");
+    showToast("¡Tarifario v5.1 guardado correctamente!");
   };
 
   const handleGuardarHistorial = () => {
