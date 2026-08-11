@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PLATAFORMA DE PRESUPUESTOS (v6.0 Regional)
+   PRISMA ARQUITECTURA — PLATAFORMA DE PRESUPUESTOS (v6.0 Regional Completo)
    ========================================================================= */
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -23,7 +23,7 @@ const ESTADOS_MEXICO = [
   { id: "CHH", nombre: "Chihuahua", factor: 1.10 },
   { id: "COA", nombre: "Coahuila", factor: 1.08 },
   { id: "COL", nombre: "Colima", factor: 0.98 },
-  { id: "CDMX",nombre: "Ciudad de México", factor: 1.00 }, // Base referencia
+  { id: "CDMX",nombre: "Ciudad de México", factor: 1.00 },
   { id: "DUR", nombre: "Durango", factor: 0.94 },
   { id: "GTO", nombre: "Guanajuato", factor: 0.98 },
   { id: "GRO", nombre: "Guerrero", factor: 0.95 },
@@ -37,7 +37,7 @@ const ESTADOS_MEXICO = [
   { id: "OAX", nombre: "Oaxaca", factor: 0.92 },
   { id: "PUE", nombre: "Puebla", factor: 0.95 },
   { id: "QRO", nombre: "Querétaro", factor: 1.02 },
-  { id: "ROO", nombre: "Quintana Roo", factor: 1.22 }, // Riviera Maya / Cancún
+  { id: "ROO", nombre: "Quintana Roo", factor: 1.22 },
   { id: "SLP", nombre: "San Luis Potosí", factor: 0.96 },
   { id: "SIN", nombre: "Sinaloa", factor: 1.08 },
   { id: "SON", nombre: "Sonora", factor: 1.12 },
@@ -49,7 +49,6 @@ const ESTADOS_MEXICO = [
   { id: "ZAC", nombre: "Zacatecas", factor: 0.92 },
 ];
 
-// --- MÓDULO PARAMÉTRICO POR M² DE EDIFICACIÓN (COSTOS BASE CDMX APROX 2026) ---
 const TIPOLOGIAS_EDIFICACION = {
   vivienda_social: { nombre: "Vivienda Interés Social / Autoconstrucción", baseMin: 7500, baseMax: 9800 },
   vivienda_media:  { nombre: "Vivienda Interés Medio", baseMin: 12500, baseMax: 16500 },
@@ -679,7 +678,7 @@ function calcularPresupuesto(partidas, priceBook, params, factorZona = 1) {
 }
 
 /* -------------------------------------------------------------------------
-   PERSISTENCIA V6.0 (Global Profile + Historical)
+   PERSISTENCIA V6.0
    ------------------------------------------------------------------------- */
 const STORAGE_KEYS = { 
   priceBook: "prisma:pricebook:v6.0", 
@@ -821,7 +820,7 @@ function PrismaMark({ size = 30 }) {
 }
 
 /* -------------------------------------------------------------------------
-   PANTALLA HOME / CONFIGURACIÓN GLOBAL (Basado en Croquis Usuario)
+   PANTALLA HOME / CONFIGURACIÓN GLOBAL (Pantalla 1 Croquis)
    ------------------------------------------------------------------------- */
 function ScreenHome({ arqPerfil, setArqPerfil, estadoSel, setEstadoSel, onIniciarModule }) {
   const estadoObj = ESTADOS_MEXICO.find((e) => e.id === estadoSel) || ESTADOS_MEXICO[8];
@@ -883,7 +882,7 @@ function ScreenHome({ arqPerfil, setArqPerfil, estadoSel, setEstadoSel, onInicia
 }
 
 /* -------------------------------------------------------------------------
-   PANTALLA DE SELECCIÓN DE MÓDULOS (Basado en Croquis Usuario - Pantalla 2)
+   PANTALLA DE SELECCIÓN DE MÓDULOS (Pantalla 2 Croquis)
    ------------------------------------------------------------------------- */
 function ScreenModuleSelector({ estadoSel, onSelectModule, arqPerfil }) {
   const estadoObj = ESTADOS_MEXICO.find((e) => e.id === estadoSel) || ESTADOS_MEXICO[8];
@@ -904,7 +903,6 @@ function ScreenModuleSelector({ estadoSel, onSelectModule, arqPerfil }) {
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
-        {/* MÓDULO 1: PARAMÉTRICO DE COSTOS DETALLADO */}
         <div className="rounded-xl bg-white border border-[color:var(--pr-line)] p-6 space-y-4 hover:border-[color:var(--pr-green)] transition-all shadow-sm flex flex-col justify-between">
           <div className="space-y-3">
             <div className="w-12 h-12 rounded-xl bg-[color:var(--pr-ink)] text-[color:var(--pr-green)] flex items-center justify-center font-bold">
@@ -920,7 +918,6 @@ function ScreenModuleSelector({ estadoSel, onSelectModule, arqPerfil }) {
           </Btn>
         </div>
 
-        {/* MÓDULO 2: PARAMÉTRICO POR M² DE EDIFICACIÓN */}
         <div className="rounded-xl bg-white border-2 border-[color:var(--pr-green)] p-6 space-y-4 hover:shadow-md transition-all flex flex-col justify-between">
           <div className="space-y-3">
             <div className="w-12 h-12 rounded-xl bg-[color:var(--pr-green)] text-[#0B1210] flex items-center justify-center font-bold">
@@ -995,7 +992,6 @@ function ScreenParametricoM2({ estadoSel, arqPerfil, onVolver }) {
         </div>
       </SectionCard>
 
-      {/* TARJETA DE RESULTADOS PARAMÉTRICOS */}
       <div className="rounded-xl overflow-hidden border border-[color:var(--pr-line)] bg-white shadow-sm space-y-4 p-6">
         <div className="border-b pb-3 flex justify-between items-center flex-wrap gap-2">
           <div>
@@ -1036,7 +1032,6 @@ function ScreenParametricoM2({ estadoSel, arqPerfil, onVolver }) {
           </div>
         </div>
 
-        {/* PIE DE RESPALDO PROFESIONAL */}
         <div className="mt-6 pt-4 border-t border-[color:var(--pr-line)] flex items-center justify-between text-[11px] text-[color:var(--pr-muted)]">
           <div>
             Responsable del Cálculo: <b>{arqPerfil.nombre || "Arq. Asignado"}</b>
@@ -1051,7 +1046,7 @@ function ScreenParametricoM2({ estadoSel, arqPerfil, onVolver }) {
 }
 
 /* -------------------------------------------------------------------------
-   VISTAS DEL MÓDULO 1 DE APU (EXISTENTES)
+   HEADER DEL MÓDULO DE APU
    ------------------------------------------------------------------------- */
 const STEPS = [
   { n: 1, label: "Proyecto", icon: Building2 },
@@ -1104,24 +1099,19 @@ function Header({ screen, setScreen, cliente, estadoSel, onVolverMenu }) {
 }
 
 /* -------------------------------------------------------------------------
-   APP PRINCIPAL PRISMA (Con Router Interno de Pantallas)
+   APP PRINCIPAL PRISMA (Router Interno)
    ------------------------------------------------------------------------- */
 export default function PrismaApp() {
-  // --- NAVEGACIÓN Y PANTALLA ACTIVA ---
-  // 'home' | 'selector' | 'm2' | 'apu'
   const [moduloActivo, setModuloActivo] = useState("home");
   const [screen, setScreen] = useState(1);
 
-  // --- DATOS GLOBALES DEL PERFIL (PERSISTENCIA LOCAL) ---
   const [arqPerfil, setArqPerfil] = useState(() => storageGet(STORAGE_KEYS.perfilArq) || { nombre: "", cedula: "" });
   const [estadoSel, setEstadoSel] = useState("CDMX");
 
-  // Guarda en caché de forma automática cuando el usuario escribe su cédula o nombre
   useEffect(() => {
     storageSet(STORAGE_KEYS.perfilArq, arqPerfil);
   }, [arqPerfil]);
 
-  // --- DATOS DEL COTIZADOR DE APU ---
   const [proyecto, setProyecto] = useState(defaultProyecto());
   const [params, setParams] = useState(defaultParams());
   const [partidas, setPartidas] = useState(defaultPartidas());
@@ -1184,7 +1174,6 @@ export default function PrismaApp() {
         }
       `}</style>
 
-      {/* RENDERIZADO SEGÚN EL MÓDULO ACTIVO */}
       {moduloActivo === "home" && (
         <main className="no-print max-w-6xl mx-auto px-4 py-6">
           <ScreenHome arqPerfil={arqPerfil} setArqPerfil={setArqPerfil} estadoSel={estadoSel} setEstadoSel={setEstadoSel} onIniciarModule={() => setModuloActivo("selector")} />
@@ -1329,6 +1318,9 @@ function RowList({ children, onAdd, addLabel }) {
   );
 }
 
+/* -------------------------------------------------------------------------
+   SCREEN 2 RESTAURADO CON TODAS LAS PARTIDAS Y OPCIONES
+   ------------------------------------------------------------------------- */
 function Screen2({ partidas, setPartidas, priceBook, params, factorZona }) {
   const update = (key, fn) => setPartidas((prev) => ({ ...prev, [key]: fn(prev[key]) }));
   const preview = useMemo(() => calcularPresupuesto(partidas, priceBook, params, factorZona), [partidas, priceBook, params, factorZona]);
@@ -1336,6 +1328,10 @@ function Screen2({ partidas, setPartidas, priceBook, params, factorZona }) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-xl border border-dashed border-[color:var(--pr-line)] bg-white/60 px-4 py-3 text-[12.5px] text-[color:var(--pr-muted)]">
+        Activa cada partida con el interruptor. Las partidas desactivadas no se incluyen en los totales ni en la exportación.
+      </div>
+
       {/* 01. PRELIMINARES */}
       <CapituloShell meta={CAPITULOS_META[0]} aplica={partidas.preliminares.aplica} subtotal={subtotalOf("preliminares")} onToggle={(v) => update("preliminares", (p) => ({ ...p, aplica: v }))}>
         <div className="space-y-5">
@@ -1355,8 +1351,8 @@ function Screen2({ partidas, setPartidas, priceBook, params, factorZona }) {
                   <Select value={d.tipo} onChange={(e) => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.map((x) => x.id === d.id ? { ...x, tipo: e.target.value } : x) }))} className="flex-1">
                     <option value="mamposteria">Muro de Mampostería</option>
                     <option value="ligero">Muro Ligero (Panel Yeso/Durock)</option>
-                    <option value="piso">Piso / Acabado de Cerámica</option>
-                    <option value="vano">Puertas y Ventanas</option>
+                    <option value="piso">Piso / Acabado de Cerámica o Porcelanato</option>
+                    <option value="vano">Puertas y Ventanas (Carpintería / Aluminio / Herrería)</option>
                   </Select>
                   <NumberInput value={d.m2} onChange={(e) => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.map((x) => x.id === d.id ? { ...x, m2: e.target.value } : x) }))} placeholder="m²" className="w-28" min="0" />
                   <IconBtn tone="danger" onClick={() => update("preliminares", (p) => ({ ...p, demoliciones: p.demoliciones.filter((x) => x.id !== d.id) }))}><Trash2 size={15} /></IconBtn>
@@ -1370,25 +1366,277 @@ function Screen2({ partidas, setPartidas, priceBook, params, factorZona }) {
       {/* 02. ALBAÑILERÍA Y MUROS */}
       <CapituloShell meta={CAPITULOS_META[1]} aplica={partidas.albanileria.aplica} subtotal={subtotalOf("albanileria")} onToggle={(v) => update("albanileria", (p) => ({ ...p, aplica: v }))}>
         <div className="space-y-6">
-          <Field label="1. Muros de Tabique Rojo Recocido (m²)">
-            <NumberInput value={partidas.albanileria.muros.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, m2: e.target.value } }))} placeholder="0" min="0" />
-          </Field>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Cara A">
-              <Select value={partidas.albanileria.muros.caraA} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraA: e.target.value, caraB: p.muros.mismoAcabado ? e.target.value : p.muros.caraB } }))}>
-                {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
-              </Select>
+          <div className="space-y-3">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">1. Muro Tradicional de Tabique Rojo</span>
+            <Field label="Muros de Tabique Rojo Recocido (m²)">
+              <NumberInput value={partidas.albanileria.muros.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, m2: e.target.value } }))} placeholder="0" min="0" />
             </Field>
-            <Field label="Cara B">
-              <Select disabled={partidas.albanileria.muros.mismoAcabado} value={partidas.albanileria.muros.caraB} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraB: e.target.value } }))}>
-                {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
-              </Select>
+            <div className="rounded-lg border border-[color:var(--pr-line)] p-4 space-y-3.5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)]">Configuración de Caras (Tabique)</span>
+                <button type="button" onClick={() => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, mismoAcabado: !p.muros.mismoAcabado, caraB: p.muros.caraA } }))} className={`text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full border transition-colors ${partidas.albanileria.muros.mismoAcabado ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}>
+                  Ambas Caras con Mismo Acabado
+                </button>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Cara A">
+                  <Select value={partidas.albanileria.muros.caraA} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraA: e.target.value, caraB: p.muros.mismoAcabado ? e.target.value : p.muros.caraB } }))}>
+                    {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                </Field>
+                <Field label="Cara B">
+                  <Select disabled={partidas.albanileria.muros.mismoAcabado} value={partidas.albanileria.muros.caraB} onChange={(e) => update("albanileria", (p) => ({ ...p, muros: { ...p.muros, caraB: e.target.value } }))}>
+                    {TIPOS_ACABADO_MURO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                </Field>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-3 border-t border-[color:var(--pr-line)]">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">2. Muros Ligeros (Tablaroca / Durock)</span>
+            <RowList
+              addLabel="Agregar Muro Ligero (Tablaroca ST / RH / Durock)"
+              onAdd={() => update("albanileria", (p) => ({ ...p, murosLigeros: [...(p.murosLigeros || []), { id: uid(), tipo: "st", caras: "2", m2: "" }] }))}
+            >
+              {(partidas.albanileria.murosLigeros || []).map((ml) => (
+                <div key={ml.id} className="grid sm:grid-cols-[1.5fr_1fr_1fr_auto] gap-2.5 items-end rounded-lg border border-[color:var(--pr-line)] p-3">
+                  <Field label="Tipo de Panel">
+                    <Select value={ml.tipo} onChange={(e) => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.map((x) => x.id === ml.id ? { ...x, tipo: e.target.value } : x) }))}>
+                      <option value="st">Tablaroca ST (Estándar)</option>
+                      <option value="rh">Tablaroca RH (Humedad)</option>
+                      <option value="durock">Durock / Panel Cemento</option>
+                    </Select>
+                  </Field>
+                  <Field label="Caras">
+                    <Select value={ml.caras} onChange={(e) => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.map((x) => x.id === ml.id ? { ...x, caras: e.target.value } : x) }))}>
+                      <option value="1">1 Cara</option>
+                      <option value="2">2 Caras</option>
+                    </Select>
+                  </Field>
+                  <Field label="Superficie (m²)">
+                    <NumberInput value={ml.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.map((x) => x.id === ml.id ? { ...x, m2: e.target.value } : x) }))} placeholder="0" min="0" />
+                  </Field>
+                  <IconBtn tone="danger" onClick={() => update("albanileria", (p) => ({ ...p, murosLigeros: p.murosLigeros.filter((x) => x.id !== ml.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
+
+          <div className="space-y-3 pt-3 border-t border-[color:var(--pr-line)]">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">3. Resanes y Emboquillados (Ancho base ≤30 cm)</span>
+            <RowList
+              addLabel="Agregar Tramo de Resane / Emboquillado (ml)"
+              onAdd={() => update("albanileria", (p) => ({ ...p, resanes: [...(p.resanes || []), { id: uid(), tipo: "emboquillado", ml: "" }] }))}
+            >
+              {(partidas.albanileria.resanes || []).map((r) => (
+                <div key={r.id} className="grid sm:grid-cols-[2fr_1fr_auto] gap-2.5 items-end rounded-lg border border-[color:var(--pr-line)] p-3">
+                  <Field label="Tipo de Resane">
+                    <Select value={r.tipo} onChange={(e) => update("albanileria", (p) => ({ ...p, resanes: p.resanes.map((x) => x.id === r.id ? { ...x, tipo: e.target.value } : x) }))}>
+                      <option value="emboquillado">Emboquillado / Perfilado en vano o marco</option>
+                      <option value="huella">Cierre de huella por demolición de muro</option>
+                      <option value="rozas">Cierre de rozas / ranuras de instalaciones</option>
+                    </Select>
+                  </Field>
+                  <Field label="Longitud (ml)">
+                    <NumberInput value={r.ml} onChange={(e) => update("albanileria", (p) => ({ ...p, resanes: p.resanes.map((x) => x.id === r.id ? { ...x, ml: e.target.value } : x) }))} placeholder="0" min="0" />
+                  </Field>
+                  <IconBtn tone="danger" onClick={() => update("albanileria", (p) => ({ ...p, resanes: p.resanes.filter((x) => x.id !== r.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
+
+          <div className="pt-3 border-t border-[color:var(--pr-line)]">
+            <Field label="4. Firmes de Concreto Interior f'c=200 (m²)">
+              <NumberInput value={partidas.albanileria.firmes.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, firmes: { m2: e.target.value } }))} placeholder="0" min="0" />
             </Field>
           </div>
         </div>
       </CapituloShell>
 
-      {/* Resto de capítulos sin cambios en UI ... */}
+      {/* 03. ESTRUCTURAS */}
+      <CapituloShell meta={CAPITULOS_META[2]} aplica={partidas.estructuras.aplica} subtotal={subtotalOf("estructuras")} onToggle={(v) => update("estructuras", (p) => ({ ...p, aplica: v }))}>
+        <RowList addLabel="Agregar Elemento Estructural" onAdd={() => update("estructuras", (p) => ({ ...p, elementos: [...p.elementos, { id: uid(), tipo: "Columna", ancho: "", peralte: "", longitud: "", piezas: "" }] }))}>
+          {partidas.estructuras.elementos.map((el) => {
+            const esZapataAislada = el.tipo === "Zapata Aislada (1.20x1.20m)";
+            const esZapataCorrida = el.tipo === "Zapata Corrida c/Contratrabe";
+
+            return (
+              <div key={el.id} className="rounded-lg border border-[color:var(--pr-line)] p-3.5">
+                <div className="grid sm:grid-cols-[1.5fr_1fr_1fr_1fr_auto] gap-2.5 items-end">
+                  <Field label="Elemento">
+                    <Select value={el.tipo} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, tipo: e.target.value } : x) }))}>
+                      {TIPOS_ESTRUCTURA.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </Select>
+                  </Field>
+
+                  {esZapataAislada ? (
+                    <Field label="Cantidad (Piezas)"><NumberInput value={el.piezas} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, piezas: e.target.value } : x) }))} min="1" placeholder="Ej. 4" /></Field>
+                  ) : esZapataCorrida ? (
+                    <Field label="Longitud Total (m)"><NumberInput value={el.longitud} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, longitud: e.target.value } : x) }))} min="0" placeholder="Ej. 12" /></Field>
+                  ) : (
+                    <>
+                      <Field label="Ancho (cm)"><NumberInput value={el.ancho} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, ancho: e.target.value } : x) }))} min="0" /></Field>
+                      <Field label="Peralte (cm)"><NumberInput value={el.peralte} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, peralte: e.target.value } : x) }))} min="0" /></Field>
+                      <Field label="Altura / Long. (m)"><NumberInput value={el.longitud} onChange={(e) => update("estructuras", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, longitud: e.target.value } : x) }))} min="0" /></Field>
+                    </>
+                  )}
+
+                  <IconBtn tone="danger" onClick={() => update("estructuras", (p) => ({ ...p, elementos: p.elementos.filter((x) => x.id !== el.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              </div>
+            );
+          })}
+        </RowList>
+      </CapituloShell>
+
+      {/* 04. ACABADOS */}
+      <CapituloShell meta={CAPITULOS_META[3]} aplica={partidas.acabados.aplica} subtotal={subtotalOf("acabados")} onToggle={(v) => update("acabados", (p) => ({ ...p, aplica: v }))}>
+        <div className="space-y-4">
+          <Field label="Tipo de Aplicación">
+            <div className="grid grid-cols-2 gap-2.5">
+              {[["vinilica", "Pintura Vinílica (2 manos)"], ["pasta", "Pasta Texturizada"]].map(([v, l]) => (
+                <button key={v} type="button" onClick={() => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, tipo: v } }))} className={`rounded-lg border px-3 py-2.5 text-[12.5px] font-bold text-left transition-colors ${partidas.acabados.pintura.tipo === v ? "border-[color:var(--pr-green)] bg-[color:var(--pr-green)]/10 text-[color:var(--pr-green-ink)]" : "border-[color:var(--pr-line)] text-[color:var(--pr-muted)]"}`}>{l}</button>
+              ))}
+            </div>
+          </Field>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Muros (m²)"><NumberInput value={partidas.acabados.pintura.m2Muros} onChange={(e) => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, m2Muros: e.target.value } }))} placeholder="0" min="0" /></Field>
+            <Field label="Plafones (m²)"><NumberInput value={partidas.acabados.pintura.m2Plafones} onChange={(e) => update("acabados", (p) => ({ ...p, pintura: { ...p.pintura, m2Plafones: e.target.value } }))} placeholder="0" min="0" /></Field>
+          </div>
+        </div>
+      </CapituloShell>
+
+      {/* 05. PISOS Y RECUBRIMIENTOS */}
+      <CapituloShell meta={CAPITULOS_META[4]} aplica={partidas.pisos.aplica} subtotal={subtotalOf("pisos")} onToggle={(v) => update("pisos", (p) => ({ ...p, aplica: v }))}>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="Tipo de Recubrimiento">
+            <Select value={partidas.pisos.tipo} onChange={(e) => update("pisos", (p) => ({ ...p, tipo: e.target.value }))}>
+              {TIPOS_PISO.map((t) => <option key={t} value={t}>{t}</option>)}
+            </Select>
+          </Field>
+          <Field label="Superficie (m²)">
+            <NumberInput value={partidas.pisos.m2} onChange={(e) => update("pisos", (p) => ({ ...p, m2: e.target.value }))} placeholder="0" min="0" />
+          </Field>
+        </div>
+      </CapituloShell>
+
+      {/* 06. CANCELERÍA Y HERRERÍA */}
+      <CapituloShell meta={CAPITULOS_META[5]} aplica={partidas.canceleria.aplica} subtotal={subtotalOf("canceleria")} onToggle={(v) => update("canceleria", (p) => ({ ...p, aplica: v }))}>
+        <RowList addLabel="Agregar Vano o Reubicación" onAdd={() => update("canceleria", (p) => ({ ...p, elementos: [...p.elementos, { id: uid(), accion: "suministro", material: 'Aluminio (2")', elemento: "Ventana", apertura: "Corrediza", ancho: "", alto: "", modulaciones: 1 }] }))}>
+          {partidas.canceleria.elementos.map((el) => (
+            <div key={el.id} className="rounded-lg border border-[color:var(--pr-line)] p-3.5 space-y-2.5">
+              <div className="flex items-center gap-2 mb-1">
+                <Select value={el.accion || "suministro"} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, accion: e.target.value } : x) }))} className="w-60 font-bold">
+                  <option value="suministro">Suministro e Instalación Nuevo</option>
+                  <option value="reubicacion">Reubicación de Cancelería / Vano Existente</option>
+                </Select>
+              </div>
+
+              {el.accion === "reubicacion" ? (
+                <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-2.5 items-end">
+                  <Field label="Ancho (cm)"><NumberInput value={el.ancho} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, ancho: e.target.value } : x) }))} min="0" /></Field>
+                  <Field label="Alto (cm)"><NumberInput value={el.alto} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, alto: e.target.value } : x) }))} min="0" /></Field>
+                  <IconBtn tone="danger" onClick={() => update("canceleria", (p) => ({ ...p, elementos: p.elementos.filter((x) => x.id !== el.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ) : (
+                <>
+                  <div className="grid sm:grid-cols-3 gap-2.5">
+                    <Field label="Material">
+                      <Select value={el.material} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, material: e.target.value } : x) }))}>
+                        {Object.keys(MATERIALES_CANCELERIA).map((m) => <option key={m} value={m}>{m}</option>)}
+                      </Select>
+                    </Field>
+                    <Field label="Elemento">
+                      <Select value={el.elemento} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, elemento: e.target.value } : x) }))}>
+                        <option value="Puerta">Puerta</option><option value="Ventana">Ventana</option>
+                      </Select>
+                    </Field>
+                    <Field label="Apertura">
+                      <Select value={el.apertura} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, apertura: e.target.value } : x) }))}>
+                        <option>Fijo</option><option>Corrediza</option><option>Abatible</option>
+                      </Select>
+                    </Field>
+                  </div>
+                  <div className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-2.5 items-end">
+                    <Field label="Ancho (cm)"><NumberInput value={el.ancho} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, ancho: e.target.value } : x) }))} min="0" /></Field>
+                    <Field label="Alto (cm)"><NumberInput value={el.alto} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, alto: e.target.value } : x) }))} min="0" /></Field>
+                    <Field label="Modulaciones"><NumberInput value={el.modulaciones} onChange={(e) => update("canceleria", (p) => ({ ...p, elementos: p.elementos.map((x) => x.id === el.id ? { ...x, modulaciones: e.target.value } : x) }))} min="1" /></Field>
+                    <IconBtn tone="danger" onClick={() => update("canceleria", (p) => ({ ...p, elementos: p.elementos.filter((x) => x.id !== el.id) }))}><Trash2 size={15} /></IconBtn>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </RowList>
+      </CapituloShell>
+
+      {/* 07. INSTALACIONES */}
+      <CapituloShell meta={CAPITULOS_META[6]} aplica={partidas.instalaciones.aplica} subtotal={subtotalOf("instalaciones")} onToggle={(v) => update("instalaciones", (p) => ({ ...p, aplica: v }))}>
+        <div className="space-y-5">
+          <div>
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2"><Zap size={13} /> Eléctrica — Cotización por Salida</span>
+            <RowList addLabel="Agregar Salida Eléctrica" onAdd={() => update("instalaciones", (p) => ({ ...p, electrica: [...p.electrica, { id: uid(), tipo: "Contacto", cantidad: "", metrosAdicionales: "" }] }))}>
+              {partidas.instalaciones.electrica.map((s) => (
+                <div key={s.id} className="grid grid-cols-[1.2fr_80px_110px_auto] gap-2 items-center">
+                  <Select value={s.tipo} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, tipo: e.target.value } : x) }))}>
+                    {TIPOS_SALIDA_ELECTRICA.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                  <NumberInput value={s.cantidad} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="Cant." min="0" />
+                  <NumberInput value={s.metrosAdicionales} onChange={(e) => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.map((x) => x.id === s.id ? { ...x, metrosAdicionales: e.target.value } : x) }))} placeholder="+ ml c/u" min="0" />
+                  <IconBtn tone="danger" onClick={() => update("instalaciones", (p) => ({ ...p, electrica: p.electrica.filter((x) => x.id !== s.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
+          <div>
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--pr-muted)] mb-2"><Droplets size={13} /> Hidráulica y Sanitaria — Cotización por Salida</span>
+            <RowList addLabel="Agregar Salida Hidrosanitaria" onAdd={() => update("instalaciones", (p) => ({ ...p, hidraulica: [...p.hidraulica, { id: uid(), tipo: "Lavabo", cantidad: "" }] }))}>
+              {partidas.instalaciones.hidraulica.map((s) => (
+                <div key={s.id} className="grid grid-cols-[1.2fr_80px_auto] gap-2 items-center">
+                  <Select value={s.tipo} onChange={(e) => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.map((x) => x.id === s.id ? { ...x, tipo: e.target.value } : x) }))}>
+                    {TIPOS_SALIDA_HIDRAULICA.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </Select>
+                  <NumberInput value={s.cantidad} onChange={(e) => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.map((x) => x.id === s.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="Cant." min="0" />
+                  <IconBtn tone="danger" onClick={() => update("instalaciones", (p) => ({ ...p, hidraulica: p.hidraulica.filter((x) => x.id !== s.id) }))}><Trash2 size={15} /></IconBtn>
+                </div>
+              ))}
+            </RowList>
+          </div>
+        </div>
+      </CapituloShell>
+
+      {/* 08. PARTIDA COMODÍN — TRABAJOS EXTRAORDINARIOS */}
+      <CapituloShell meta={CAPITULOS_META[7]} aplica={partidas.extraordinarios?.aplica || false} subtotal={subtotalOf("extraordinarios")} onToggle={(v) => update("extraordinarios", (p) => ({ ...p, aplica: v }))}>
+        <div className="space-y-4">
+          <div className="text-[12px] text-[color:var(--pr-muted)] bg-[color:var(--pr-canvas)]/60 p-3 rounded-lg border border-[color:var(--pr-line)]">
+            Usa esta partida comodín para agregar trabajos especiales (ej. carpintería a medida, clósets, herrería artesanal, etc.). Se le aplicarán automáticamente tus porcentajes de sobrecosto.
+          </div>
+          <RowList
+            addLabel="Agregar Concepto Extraordinario"
+            onAdd={() => update("extraordinarios", (p) => ({ ...p, conceptos: [...(p.conceptos || []), { id: uid(), descripcion: "", unidad: "Pza", cantidad: 1, pu: "" }] }))}
+          >
+            {(partidas.extraordinarios?.conceptos || []).map((c) => (
+              <div key={c.id} className="grid sm:grid-cols-[2fr_80px_90px_130px_auto] gap-2 items-end rounded-lg border border-[color:var(--pr-line)] p-3">
+                <Field label="Descripción del Trabajo">
+                  <TextInput value={c.descripcion} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, descripcion: e.target.value } : x) }))} placeholder="Ej. Clóset de madera en MDF según diseño" />
+                </Field>
+                <Field label="Unidad">
+                  <TextInput value={c.unidad} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, unidad: e.target.value } : x) }))} placeholder="Pza" />
+                </Field>
+                <Field label="Cantidad">
+                  <NumberInput value={c.cantidad} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, cantidad: e.target.value } : x) }))} placeholder="1" min="0" />
+                </Field>
+                <Field label="Costo Dir. Unit. ($)">
+                  <NumberInput value={c.pu} onChange={(e) => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.map((x) => x.id === c.id ? { ...x, pu: e.target.value } : x) }))} placeholder="0.00" min="0" />
+                </Field>
+                <IconBtn tone="danger" onClick={() => update("extraordinarios", (p) => ({ ...p, conceptos: p.conceptos.filter((x) => x.id !== c.id) }))}><Trash2 size={15} /></IconBtn>
+              </div>
+            ))}
+          </RowList>
+        </div>
+      </CapituloShell>
     </div>
   );
 }
@@ -1401,6 +1649,16 @@ function APUItemCard({ item }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-[13.5px] font-semibold text-[color:var(--pr-ink)] truncate">{item.concepto}</span>
+            {item.esTrabajoPequeno && (
+              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                Jornada Mínima Aplicada
+              </span>
+            )}
+            {item.manual && (
+              <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                Directo / Comodín
+              </span>
+            )}
           </div>
           <div className="text-[11.5px] text-[color:var(--pr-muted)] tabular-nums">{item.cantidad} {item.unidad} × {money(item.puTotal)}</div>
         </div>
@@ -1409,6 +1667,30 @@ function APUItemCard({ item }) {
           <ChevronDown size={16} className={`text-[color:var(--pr-muted)] transition-transform ${open ? "rotate-180" : ""}`} />
         </div>
       </button>
+      {open && (
+        <div className="px-4 pb-4 pt-1 border-t border-[color:var(--pr-line)] bg-[color:var(--pr-canvas)]/40 text-[12.5px] space-y-2">
+          {item.matDetalle?.length > 0 && (
+            <div>
+              <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Insumos / Base Directa</div>
+              {item.matDetalle.map((m, i) => (
+                <div key={i} className="flex justify-between text-[12px]">
+                  <span>{m.descripcion}</span>
+                  <b>{money(m.importe)}</b>
+                </div>
+              ))}
+            </div>
+          )}
+          {item.cuadrilla && (
+            <div>
+              <div className="text-[10.5px] font-bold uppercase tracking-wide text-[color:var(--pr-muted)] my-1">Mano de Obra</div>
+              <div className="flex justify-between text-[12px]">
+                <span>{item.cuadrilla?.descripcion} {item.esTrabajoPequeno && "(Mínimo Cuadrilla)"}</span>
+                <b>{money(item.costoMO)} / {item.unidad}</b>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1442,7 +1724,7 @@ function Screen4({ priceBook, setPriceBook, onSaveAsDefault }) {
 
   return (
     <div className="space-y-4">
-      <SectionCard icon={Database} title="Tarifario Base Maestra" subtitle="Modifica y guarda los precios base CDMX para usarlos en todos los estados">
+      <SectionCard icon={Database} title="Tarifario Base Maestra" subtitle="Modifica y guarda los precios base CDMX para usarlos en todos los estados" right={<Btn variant="solid" onClick={onSaveAsDefault}><Save size={14} /> Guardar Tarifario Predeterminado</Btn>}>
         <div className="flex gap-2 mb-4 border-b pb-3">
           {["materiales", "manoObra", "equipo"].map((k) => (
             <button key={k} onClick={() => setTab(k)} className={`px-3 py-1.5 rounded-lg text-[12px] font-bold uppercase ${tab === k ? "bg-black text-white" : "text-gray-500"}`}>
@@ -1492,31 +1774,107 @@ function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHisto
   const porM2 = num(proyecto.superficie) > 0 ? presupuesto.total / num(proyecto.superficie) : 0;
   const activos = presupuesto.capitulos.filter((c) => c.aplica && c.items.length > 0);
 
+  const resumenTexto = () => {
+    let t = `*Presupuesto Paramétrico — Prisma Arquitectura*\nCliente: ${proyecto.cliente || "—"}\nUbicación: ${proyecto.ubicacion || "—"} (${estadoObj.nombre})\nSuperficie: ${proyecto.superficie || 0} m²\nElaboró: ${arqPerfil.nombre || "—"} (Cédula: ${arqPerfil.cedula || "N/A"})\n\n`;
+    activos.forEach((c) => {
+      t += `*${c.nombre}*: ${money(c.subtotalCliente)}\n`;
+      c.items.forEach(it => {
+        t += `  • ${it.concepto} (${it.cantidad} ${it.unidad}): ${money(it.totalCliente)}\n`;
+      });
+    });
+    t += `\n*TOTAL DEL PROYECTO: ${money(presupuesto.total)}*\nImporte con letra: ${numeroALetras(presupuesto.total)}\n\n_En caso de requerir factura, los precios son MÁS EL 16% DE I.V.A. Vigencia: 15 días naturales._`;
+    return t;
+  };
+
+  const handleWhatsApp = () => window.open(`https://wa.me/?text=${encodeURIComponent(resumenTexto())}`, "_blank");
+  const handleEmail = () => window.open(`mailto:?subject=${encodeURIComponent(`Presupuesto Paramétrico — ${proyecto.cliente || "Proyecto"}`)}&body=${encodeURIComponent(resumenTexto())}`, "_blank");
+  const handlePrint = () => window.print();
+
   return (
     <div className="space-y-5">
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
           <SectionCard icon={FileText} title="Resumen Ejecutivo y Desglose de Cotización" subtitle={`Responsable: ${arqPerfil.nombre || "Arq. Asignado"} | Cédula: ${arqPerfil.cedula || "N/A"}`}>
-            {activos.map((cap) => (
-              <div key={cap.key} className="rounded-lg border border-[color:var(--pr-line)] overflow-hidden mb-3">
-                <div className="bg-black/5 px-4 py-2 flex justify-between items-center font-display text-[13px]">
-                  <span>{cap.nombre}</span>
-                  <span>{money(cap.subtotalCliente)}</span>
-                </div>
+            {activos.length === 0 ? (
+              <p className="text-[13px] text-[color:var(--pr-muted)]">No hay partidas activas. Regresa a la Pantalla 2 para capturar conceptos.</p>
+            ) : (
+              <div className="space-y-4">
+                {activos.map((cap) => (
+                  <div key={cap.key} className="rounded-lg border border-[color:var(--pr-line)] overflow-hidden">
+                    <div className="bg-black/5 px-4 py-2.5 flex justify-between items-center font-display text-[13.5px]">
+                      <span>{cap.nombre}</span>
+                      <span>{money(cap.subtotalCliente)}</span>
+                    </div>
+                    <div className="p-3 space-y-1.5 text-[12.5px] bg-white">
+                      {cap.items.map((it) => (
+                        <div key={it.id} className="flex justify-between items-center border-b border-gray-100 pb-1">
+                          <span className="text-gray-700">{it.concepto} <span className="text-[11px] text-gray-400">({it.cantidad} {it.unidad})</span></span>
+                          <b className="tabular-nums">{money(it.totalCliente)}</b>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </SectionCard>
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-[12px] text-amber-900 space-y-1.5">
+            <div className="font-bold uppercase tracking-wider text-amber-800">Notas y Condiciones Comerciales:</div>
+            <ul className="list-disc list-inside space-y-1 text-amber-900/90">
+              <li>Los precios presentados corresponden a costos parametrizados en Moneda Nacional (MXN).</li>
+              <li><b>En caso de requerir comprobante fiscal (factura), los precios son MÁS EL 16% DE I.V.A.</b></li>
+              <li>Propuesta con vigencia de <b>15 días naturales</b> a partir de su emisión.</li>
+            </ul>
+          </div>
+
+          {historial.length > 0 && (
+            <SectionCard icon={History} title="Historial de Presupuestos" subtitle={`${historial.length} guardado${historial.length > 1 ? "s" : ""}`}>
+              <div className="space-y-2">
+                {historial.slice().reverse().map((h) => (
+                  <div key={h.id} className="flex items-center justify-between gap-3 rounded-lg border border-[color:var(--pr-line)] px-3.5 py-2.5">
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold truncate">{h.cliente || "Sin nombre"}</div>
+                      <div className="text-[11px] text-[color:var(--pr-muted)]">{h.fecha} · {money(h.total)} ({h.estadoSel || "CDMX"})</div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <IconBtn onClick={() => onLoadHistorial(h)} title="Cargar"><FolderOpen size={14} /></IconBtn>
+                      <IconBtn tone="danger" onClick={() => onDeleteHistorial(h.id)} title="Eliminar"><Trash2 size={14} /></IconBtn>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
         </div>
 
         <div className="space-y-4">
           <div className="rounded-xl overflow-hidden border border-[color:var(--pr-line)]" style={{ background: "var(--pr-ink)" }}>
-            <div className="relative px-5 py-5 text-white space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-[color:var(--pr-green)] font-bold">Costo Total (Zona {estadoObj.nombre})</div>
-              <div className="font-display text-[28px] tabular-nums leading-none">{money(presupuesto.total)}</div>
-              {porM2 > 0 && <div className="text-[12px] text-white/50 mt-1 tabular-nums">{money(porM2)} / m²</div>}
+            <div className="relative px-5 py-5">
+              <BlueprintTexture className="text-[color:var(--pr-green)]" />
+              <div className="relative divide-y divide-white/10 text-white">
+                <div className="pb-2.5"><LineaResumen label="Subtotal Directo de Obra" value={money(presupuesto.subtotalDirecto)} /></div>
+                <div className="py-2.5"><LineaResumen label={`(+) Indirectos y Utilidad (${params.indirectos}%)`} value={money(presupuesto.indirectos)} /></div>
+                <div className="py-2.5"><LineaResumen label={`(+) Reserva para Imprevistos (${params.imprevistos}%)`} value={money(presupuesto.imprevistos)} /></div>
+                <div className="pt-3">
+                  <div className="text-[11px] uppercase tracking-wide text-[color:var(--pr-green)] font-bold mb-1">Costo Total (Zona {estadoObj.nombre})</div>
+                  <div className="font-display text-[28px] tabular-nums leading-none">{money(presupuesto.total)}</div>
+                  {porM2 > 0 && <div className="text-[12px] text-white/50 mt-1.5 tabular-nums">{money(porM2)} / m²</div>}
+                </div>
+              </div>
             </div>
           </div>
-          <Btn variant="dark" onClick={onSave} className="w-full"><Save size={15} /> Guardar en Historial</Btn>
+
+          <div className="space-y-2.5">
+            <Btn onClick={handlePrint} className="w-full"><Download size={15} /> Imprimir / PDF Membretado</Btn>
+            <div className="grid grid-cols-2 gap-2.5">
+              <Btn variant="outline" onClick={handleWhatsApp}><Send size={14} /> WhatsApp</Btn>
+              <Btn variant="outline" onClick={handleEmail}><Send size={14} /> Correo</Btn>
+            </div>
+            <Btn variant="dark" onClick={onSave} className="w-full">
+              <Save size={15} /> Guardar Presupuesto en Historial
+            </Btn>
+          </div>
         </div>
       </div>
     </div>
@@ -1524,6 +1882,7 @@ function Screen5({ proyecto, presupuesto, params, onSave, historial, onLoadHisto
 }
 
 function PrintReport({ proyecto, presupuesto, arqPerfil, estadoObj }) {
+  const activos = presupuesto.capitulos.filter((c) => c.aplica && c.items.length > 0);
   const fecha = new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
   return (
     <div className="print-only hidden">
@@ -1545,17 +1904,66 @@ function PrintReport({ proyecto, presupuesto, arqPerfil, estadoObj }) {
         <div className="grid grid-cols-2 gap-4 mb-6 text-[12px] bg-black/[0.02] p-4 rounded border border-black/10">
           <div><span className="font-bold">Cliente:</span> {proyecto.cliente || "—"}</div>
           <div><span className="font-bold">Ubicación:</span> {proyecto.ubicacion || "—"} ({estadoObj.nombre})</div>
+          <div><span className="font-bold">Tipo de Inmueble:</span> {proyecto.tipo}</div>
+          <div><span className="font-bold">Superficie:</span> {proyecto.superficie || 0} m²</div>
           <div><span className="font-bold">Arquitecto Responsable:</span> {arqPerfil.nombre || "—"}</div>
           <div><span className="font-bold">Cédula Profesional:</span> {arqPerfil.cedula || "—"}</div>
         </div>
 
+        {activos.map((cap) => (
+          <div key={cap.key} className="mb-5 break-inside-avoid">
+            <div className="font-display text-[13px] bg-black/5 px-2.5 py-1.5 mb-1.5 rounded-sm">{cap.nombre}</div>
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="text-left text-[#5B6560] border-b border-black/20">
+                  <th className="py-1.5">Concepto</th>
+                  <th className="py-1.5 w-20">Cant.</th>
+                  <th className="py-1.5 w-16">Und.</th>
+                  <th className="py-1.5 w-24 text-right">P.U.</th>
+                  <th className="py-1.5 w-28 text-right">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cap.items.map((it) => (
+                  <tr key={it.id} className="border-t border-black/10">
+                    <td className="py-1.5 pr-2">{it.concepto}</td>
+                    <td className="py-1.5 tabular-nums">{it.cantidad}</td>
+                    <td className="py-1.5">{it.unidad}</td>
+                    <td className="py-1.5 text-right tabular-nums">{money(it.puTotalCliente)}</td>
+                    <td className="py-1.5 text-right tabular-nums font-bold">{money(it.totalCliente)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="text-right text-[11.5px] font-bold mt-1.5">Subtotal Capítulo: {money(cap.subtotalCliente)}</div>
+          </div>
+        ))}
+
+        <div className="mt-6 border-t-2 border-[#14181B] pt-4 ml-auto w-80 text-[12px]">
+          <div className="flex justify-between py-1 font-bold text-[15px]">
+            <span>TOTAL DEL PROYECTO</span>
+            <span className="tabular-nums">{money(presupuesto.total)}</span>
+          </div>
+          {num(proyecto.superficie) > 0 && (
+            <div className="flex justify-between text-[11px] text-[#5B6560] pt-0.5">
+              <span>Costo por m²</span>
+              <span className="tabular-nums">{money(presupuesto.total / num(proyecto.superficie))} / m²</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 p-3 bg-black/[0.03] border border-black/15 rounded text-[11px] font-bold">
+          <span className="text-[#5B6560] font-normal uppercase">Importe con letra: </span>
+          {numeroALetras(presupuesto.total)}
+        </div>
+
         <div className="mt-8 pt-4 border-t border-black/20 text-[11px] flex justify-between">
           <div>
-            <b>Elaboró:</b> {arqPerfil.nombre} <br/>
-            Cédula Prof: {arqPerfil.cedula}
+            <b>Elaboró:</b> {arqPerfil.nombre || "—"}<br/>
+            <b>Cédula Prof:</b> {arqPerfil.cedula || "—"}
           </div>
-          <div>
-            <b>Firma de Conformidad / Aceptación</b>
+          <div className="text-right">
+            <b>Firma de Conformidad / Aceptación del Cliente</b>
           </div>
         </div>
       </div>
