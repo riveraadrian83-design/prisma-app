@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* =========================================================================
-   PRISMA ARQUITECTURA — PARAMÉTRICO (v5.2 Clean + Resanes por ml)
+   PRISMA ARQUITECTURA — PARAMÉTRICO (v5.2 Clean Fixed for Vite)
    Cotizador de campo y Análisis de Precios Unitarios (APU)
    ========================================================================= */
 
@@ -48,13 +48,9 @@ const DEFAULT_MATERIALES = [
   { id: "flete_piso", codigo: "MAT-31", descripcion: "Acarreo/Retiro Escombro (piso/recubrimiento)", unidad: "m2", precio: 28, marca: "Ferretería La Siete" },
   { id: "flete_carpinteria", codigo: "MAT-32", descripcion: "Acarreo/Retiro Puertas y Ventanas", unidad: "m2", precio: 20, marca: "Ferretería La Siete" },
   { id: "fijaciones_reubicacion", codigo: "MAT-33", descripcion: "Consumibles de Reubicación (Taquetes, pijas, sellador)", unidad: "pza", precio: 120, marca: "Ferretería La Siete" },
-  
-  // INSUMOS PARA MUROS LIGEROS
   { id: "tablaroca_st_insumo", codigo: "MAT-34", descripcion: "Panel Tablaroca ST 1/2\" + Estructura y Redimix", unidad: "m2", precio: 145, marca: "USG" },
   { id: "tablaroca_rh_insumo", codigo: "MAT-35", descripcion: "Panel Tablaroca RH (Humedad) 1/2\" + Estructura", unidad: "m2", precio: 195, marca: "USG" },
   { id: "durock_insumo", codigo: "MAT-36", descripcion: "Panel Durock 1/2\" + Estructura, Cinta MESH y Basecoat", unidad: "m2", precio: 380, marca: "USG" },
-
-  // INSUMOS PARA RESANES Y EMBOQUILLADOS
   { id: "adhesivo_mortero", codigo: "MAT-37", descripcion: "Adhesivo para Unir Mortero Nuevo a Viejo (Festerbond)", unidad: "ml", precio: 18, marca: "Fester" },
   { id: "mortero_resane", codigo: "MAT-38", descripcion: "Mortero / Yeso / Pasta para Resane y Emboquillado", unidad: "ml", precio: 25, marca: "Cemex" },
 ];
@@ -85,7 +81,6 @@ const MATRICES = {
   demol_vano: { nombre: "Retiro / Desmantelamiento de Puertas y Ventanas (Carpintería / Aluminio / Herrería)", unidad: "m2", materiales: [{ id: "flete_carpinteria", cant: 1 }], cuadrilla: "MO-06", rendimiento: 25 },
   muro_tabique: { nombre: "Muro de Tabique Rojo Recocido", unidad: "m2", materiales: [{ id: "tabique", cant: 32 }, { id: "mortero", cant: 0.03 }], cuadrilla: "MO-01", rendimiento: 6 },
   
-  // MATRICES PARA MUROS LIGEROS
   muro_tablaroca_st_1c: { nombre: "Muro Ligero Tablaroca Normal (1 cara)", unidad: "m2", materiales: [{ id: "tablaroca_st_insumo", cant: 1 }], cuadrilla: "MO-02", rendimiento: 20 },
   muro_tablaroca_st_2c: { nombre: "Muro Ligero Tablaroca Normal (2 caras)", unidad: "m2", materiales: [{ id: "tablaroca_st_insumo", cant: 1.85 }], cuadrilla: "MO-02", rendimiento: 14 },
   muro_tablaroca_rh_1c: { nombre: "Muro Ligero Tablaroca RH Zonas Húmedas (1 cara)", unidad: "m2", materiales: [{ id: "tablaroca_rh_insumo", cant: 1 }], cuadrilla: "MO-02", rendimiento: 18 },
@@ -93,7 +88,6 @@ const MATRICES = {
   muro_durock_1c: { nombre: "Muro Ligero Durock / Cemento (1 cara)", unidad: "m2", materiales: [{ id: "durock_insumo", cant: 1 }], cuadrilla: "MO-02", rendimiento: 12 },
   muro_durock_2c: { nombre: "Muro Ligero Durock / Cemento (2 caras)", unidad: "m2", materiales: [{ id: "durock_insumo", cant: 1.85 }], cuadrilla: "MO-02", rendimiento: 8 },
 
-  // MATRICES PARA RESANES Y EMBOQUILLADOS (por ml, desarrollo ancho base 30 cm)
   resane_emboquillado: { nombre: "Emboquillado y Perfilado en Vano (hasta 30 cm ancho)", unidad: "ml", materiales: [{ id: "mortero_resane", cant: 1 }], cuadrilla: "MO-01", rendimiento: 15 },
   resane_huella: { nombre: "Resane / Cierre de Huella por Demolición de Muro (hasta 30 cm ancho)", unidad: "ml", materiales: [{ id: "mortero_resane", cant: 1 }, { id: "adhesivo_mortero", cant: 1 }], cuadrilla: "MO-01", rendimiento: 12 },
   resane_rozas: { nombre: "Resane y Cierre de Rozas / Ranuras de Instalación (hasta 30 cm ancho)", unidad: "ml", materiales: [{ id: "mortero_resane", cant: 1 }], cuadrilla: "MO-01", rendimiento: 18 },
@@ -106,12 +100,22 @@ const MATRICES = {
   firme: { nombre: "Firme de Concreto Interior f'c=200", unidad: "m2", materiales: [{ id: "concreto_200", cant: 1 }, { id: "malla_electrosoldada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 25 },
   pintura_vinilica: { nombre: "Pintura Vinílica (2 manos)", unidad: "m2", materiales: [{ id: "pintura_vinilica", cant: 1 }], cuadrilla: "MO-03", rendimiento: 35 },
   pasta_texturizada: { nombre: "Pasta Texturizada", unidad: "m2", materiales: [{ id: "pasta_texturizada", cant: 1 }], cuadrilla: "MO-03", rendimiento: 20 },
-  "piso_Cerámico": { nombre: "Piso Cerámico", unidad: "m2", materiales: [{ id: "piso_ceramico", cant: 1 }], cuadrilla: "MO-01", rendimiento: 18 },
-  piso_Porcelanato": { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
-  "piso_Concreto Pulido": { nombre: "Concreto Pulido", unidad: "m2", materiales: [{ id: "concreto_pulido_insumo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 30 },
-  piso_Terrazzo": { nombre: "Terrazzo", unidad: "m2", materiales: [{ id: "terrazzo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 10 },
-  "piso_Duela Laminada": { nombre: "Duela Laminada", unidad: "m2", materiales: [{ id: "duela_laminada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 20 },
-  "piso_Duela Vinílica tipo SPC o LVT": { nombre: "Duela Vinílica SPC/LVT", unidad: "m2", materiales: [{ id: "duela_vinilica", cant: 1 }], cuadrilla: "MO-01", rendimiento: 22 },
+  
+  piso_ceramico_mat: { nombre: "Piso Cerámico", unidad: "m2", materiales: [{ id: "piso_ceramico", cant: 1 }], cuadrilla: "MO-01", rendimiento: 18 },
+  piso_porcelanato_mat: { nombre: "Piso Porcelanato", unidad: "m2", materiales: [{ id: "piso_porcelanato", cant: 1 }], cuadrilla: "MO-01", rendimiento: 14 },
+  piso_concreto_pulido_mat: { nombre: "Concreto Pulido", unidad: "m2", materiales: [{ id: "concreto_pulido_insumo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 30 },
+  piso_terrazzo_mat: { nombre: "Terrazzo", unidad: "m2", materiales: [{ id: "terrazzo", cant: 1 }], cuadrilla: "MO-01", rendimiento: 10 },
+  piso_duela_laminada_mat: { nombre: "Duela Laminada", unidad: "m2", materiales: [{ id: "duela_laminada", cant: 1 }], cuadrilla: "MO-01", rendimiento: 20 },
+  piso_duela_vinilica_mat: { nombre: "Duela Vinílica SPC/LVT", unidad: "m2", materiales: [{ id: "duela_vinilica", cant: 1 }], cuadrilla: "MO-01", rendimiento: 22 },
+};
+
+const MAPA_PISOS_MATRIZ = {
+  "Cerámico": "piso_ceramico_mat",
+  "Porcelanato": "piso_porcelanato_mat",
+  "Concreto Pulido": "piso_concreto_pulido_mat",
+  "Terrazzo": "piso_terrazzo_mat",
+  "Duela Laminada": "piso_duela_laminada_mat",
+  "Duela Vinílica tipo SPC o LVT": "piso_duela_vinilica_mat"
 };
 
 const TIPOS_ACABADO_MURO = ["Enjarre", "Yeso", "Estuco", "Azulejo", "Aparente"];
@@ -346,7 +350,6 @@ function calcPreliminares(p, priceBook, params) {
 function calcAlbanileria(p, priceBook, params) {
   const items = [];
   
-  // 1. Tabique Rojo Recocido
   const cantMuro = num(p.muros.m2);
   if (cantMuro > 0) {
     items.push({ id: "muro", concepto: "Muro de Tabique Rojo Recocido (matriz base)", ...calcConcepto("muro_tabique", cantMuro, priceBook, params) });
@@ -355,7 +358,6 @@ function calcAlbanileria(p, priceBook, params) {
     items.push({ id: "caraB", concepto: `Acabado Cara B: ${caraB}`, ...calcConcepto(`acabado_${caraB}`, cantMuro, priceBook, params) });
   }
 
-  // 2. Muros Ligeros (Tablaroca ST, RH, Durock)
   if (p.murosLigeros && p.murosLigeros.length > 0) {
     p.murosLigeros.forEach((ml) => {
       const cant = num(ml.m2);
@@ -374,7 +376,6 @@ function calcAlbanileria(p, priceBook, params) {
     });
   }
 
-  // 3. Resanes y Emboquillados por metro lineal
   if (p.resanes && p.resanes.length > 0) {
     p.resanes.forEach((r) => {
       const cantMl = num(r.ml);
@@ -392,7 +393,6 @@ function calcAlbanileria(p, priceBook, params) {
     });
   }
 
-  // 4. Firmes
   const cantFirme = num(p.firmes.m2);
   if (cantFirme > 0) items.push({ id: "firme", concepto: "Firme de Concreto Interior f'c=200 kg/cm2", ...calcConcepto("firme", cantFirme, priceBook, params) });
   
@@ -500,7 +500,7 @@ function calcAcabados(p, priceBook, params) {
 function calcPisos(p, priceBook, params) {
   const cant = num(p.m2);
   if (cant <= 0) return [];
-  const key = `piso_${p.tipo}`;
+  const key = MAPA_PISOS_MATRIZ[p.tipo] || "piso_ceramico_mat";
   return [{ id: "piso", concepto: `Piso ${p.tipo}`, ...calcConcepto(key, cant, priceBook, params) }];
 }
 
@@ -592,7 +592,6 @@ function calcInstalaciones(p, priceBook, params) {
   return items;
 }
 
-// PARTIDA COMODÍN: TRABAJOS EXTRAORDINARIOS
 function calcExtraordinarios(p) {
   if (!p.conceptos || p.conceptos.length === 0) return [];
   return p.conceptos.map((c) => {
@@ -983,7 +982,6 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
       {/* 02. ALBAÑILERÍA Y MUROS */}
       <CapituloShell meta={CAPITULOS_META[1]} aplica={partidas.albanileria.aplica} subtotal={subtotalOf("albanileria")} onToggle={(v) => update("albanileria", (p) => ({ ...p, aplica: v }))}>
         <div className="space-y-6">
-          {/* Muro Tradicional */}
           <div className="space-y-3">
             <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">1. Muro Tradicional de Tabique Rojo</span>
             <Field label="Muros de Tabique Rojo Recocido (m²)">
@@ -1011,7 +1009,6 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
             </div>
           </div>
 
-          {/* Muros Ligeros (Tablaroca ST, RH, Durock) */}
           <div className="space-y-3 pt-3 border-t border-[color:var(--pr-line)]">
             <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">2. Muros Ligeros (Tablaroca / Durock)</span>
             <RowList
@@ -1042,7 +1039,6 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
             </RowList>
           </div>
 
-          {/* Resanes y Emboquillados por metro lineal */}
           <div className="space-y-3 pt-3 border-t border-[color:var(--pr-line)]">
             <span className="block text-[11px] font-bold uppercase tracking-wider text-[color:var(--pr-ink)]">3. Resanes y Emboquillados (Ancho base ≤30 cm)</span>
             <RowList
@@ -1067,7 +1063,6 @@ function Screen2({ partidas, setPartidas, priceBook, params }) {
             </RowList>
           </div>
 
-          {/* Firmes */}
           <div className="pt-3 border-t border-[color:var(--pr-line)]">
             <Field label="4. Firmes de Concreto Interior f'c=200 (m²)">
               <NumberInput value={partidas.albanileria.firmes.m2} onChange={(e) => update("albanileria", (p) => ({ ...p, firmes: { m2: e.target.value } }))} placeholder="0" min="0" />
